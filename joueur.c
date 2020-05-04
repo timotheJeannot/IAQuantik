@@ -32,8 +32,28 @@ int main (int argc, char ** argv)
 
     char * serv = argv[1];
     int port = atoi(argv[2]);
+    int port2 = port+1;
+    struct sockaddr_in addClient;
+    coupIA coupAdvIA;
+    
+    int socketConx = socketServeur(port2);
+    if (socketConx < 0) {
+        perror("Erreur création socket");
+        return -1;
+    }
 
-    int socket = socketClient(serv,port);
+    int sizeAddr = sizeof(struct sockaddr_in);
+    int socketIA = accept(socketConx,
+                       (struct sockaddr *)&addClient,
+                       (socklen_t *)&sizeAddr);
+    if (socketIA < 0) {
+        perror("Erreur sur accept");
+        return -1;
+    }
+
+
+
+    int socket = socketClient(serv,port); 
     if(socket < 0)
     {
         perror("(joueur) erreur sur la création de la socket");
@@ -64,6 +84,18 @@ int main (int argc, char ** argv)
     {
         couleur = NOIR;
     }
+
+    int couleurIA = (couleur == BLANC) ? 0 : 1;
+    couleurIA = htonl(couleurIA);
+
+    err = send(socketIA, &couleurIA, sizeof(int), 0);
+
+    if (err != sizeof(int)) {
+        perror("(Erreur sur l'envoi de la couleur");
+        shutdown(socket, SHUT_RDWR);
+        close(socket);
+        return -1;
+        }
 
     /************* Fin initialisation de la communication *****************/
 
@@ -110,12 +142,31 @@ int main (int argc, char ** argv)
                     if(coupAdve.propCoup == CONT)
                     {
                         cont = true;
+
+                        coupAdvIA.estBloque = htonl((int)coupAdve.estBloque);
+                        coupAdvIA.typePion = htonl((int)coupAdve.pion.typePion);       
+                        coupAdvIA.couleur = htonl((int)coupAdve.pion.coulPion);   
+                        coupAdvIA.lignePion = htonl((int)coupAdve.posPion.l);      
+                        coupAdvIA.colonnePion = htonl((int)coupAdve.posPion.c);    
+                        coupAdvIA.propCoup = htonl((int)coupAdve.propCoup);
+
+                    
+
+                        err = send(socketIA, (const void *) &coupAdvIA, sizeof(coupIA), 0);
+                        if (err != sizeof(coupIA)) {
+                            perror("Erreur envoi coup adverse");
+                            shutdown(socketIA, SHUT_RDWR);
+                            close(socketIA);
+                            return -1;
+                        }
                     }
                 }
         }
 
         while(cont)
         {
+
+            //to do : Réception du coup crée par l'IA
             
             cont = false;
             TCoupReq coup = randomCoup(plateau,pieces,COUP,0,couleur);
@@ -133,6 +184,18 @@ int main (int argc, char ** argv)
                 shutdown(socket, SHUT_RDWR); close(socket);
                 return -5;
             }
+
+            if(repCoup.propCoup != CONT) {
+                 int propCoupG = htonl(repCoup.propCoup);
+                        err = send(socketIA, &propCoupG, sizeof(int), 0);
+                        if (err != sizeof(int)) {
+                            perror("Erreur envoi prop coup adverse");
+                            shutdown(socketIA, SHUT_RDWR);
+                            close(socketIA);
+                            return -1;
+                        }
+            }
+
             if(repCoup.propCoup == GAGNE)
             {
                 printf("Nous avons gagné la partie\n");
@@ -173,7 +236,45 @@ int main (int argc, char ** argv)
                     if(coupAdv.propCoup == CONT)
                     {
                         cont = true;
+
+
+                        coupAdvIA.estBloque = htonl((int)coupAdv.estBloque);
+                        coupAdvIA.typePion = htonl((int)coupAdv.pion.typePion);       
+                        coupAdvIA.couleur = htonl((int)coupAdv.pion.coulPion);   
+                        coupAdvIA.lignePion = htonl((int)coupAdv.posPion.l);      
+                        coupAdvIA.colonnePion = htonl((int)coupAdv.posPion.c);    
+                        coupAdvIA.propCoup = htonl((int)coupAdv.propCoup);
+
+                    
+
+                        err = send(socketIA, (const void *) &coupAdvIA, sizeof(coupIA), 0);
+                        if (err != sizeof(coupIA)) {
+                            perror("Erreur envoi coup adverse");
+                            shutdown(socketIA, SHUT_RDWR);
+                            close(socketIA);
+                            return -1;
+                        }
                     }
+                    else {
+                        int propCoupAdv = htonl((int)coupAdv.propCoup);
+                        err = send(socketIA, &propCoupAdv, sizeof(int), 0);
+                        if (err != sizeof(coupIA)) {
+                            perror("Erreur envoi prop coup adverse");
+                            shutdown(socketIA, SHUT_RDWR);
+                            close(socketIA);
+                            return -1;
+                        }
+                    }
+                }
+                else{
+                    int propCoupG = htonl(GAGNE);
+                        err = send(socketIA, &propCoupG, sizeof(int), 0);
+                        if (err != sizeof(int)) {
+                            perror("Erreur envoi prop coup adverse");
+                            shutdown(socketIA, SHUT_RDWR);
+                            close(socketIA);
+                            return -1;
+                        }
                 }
                 if(repCoupAdv.propCoup == GAGNE)
                 {
