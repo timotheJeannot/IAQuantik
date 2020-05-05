@@ -9,6 +9,15 @@ struct tab{
     int capacity;
 };
 
+typedef struct {
+  int propCoup; 
+  int estBloque;     
+  int couleur;
+  int typePion;         
+  int lignePion;       
+  int colonnePion;        
+} coupIA;
+
 void addTab (struct tab * tab, int value);
 
 int * iniPlateau ();
