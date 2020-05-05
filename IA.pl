@@ -126,29 +126,35 @@ bloquerR(X,8):-
 % 6ieme = plateau2
 % 7ieme = plateau2 après le coup
 jouerCoup(Pl1,[C,P],RPl1,PiecesDispo,RPiecesDispo,Pl2,RPl2):-
-    helpJouerCoup(Pl1,[C,P],C,1,[Li,Co,Ca],RPl1,Pl2,Pl2p,I),
+    helpJouerCoup(Pl1,[C,P],C,0,Li,Co,Ca,RPl1,Pl2,Pl2p,ILi,ICo,ICa),
     not(bloquerR(Li,P)),
     not(bloquerR(Co,P)),
     not(bloquerR(Ca,P)),
     X is mod(P-1,4),
     modifPiecesDispo(PiecesDispo,X,RPiecesDispo),
-    modifPlateau2(Pl2p,I,RPl2).
+    copiePlateau2(Pl2p,0,ILi,ICo,ICa,RPl2), % copie de Pl2p dans RPl2 sauf pour les cases désignés par ILi,ICo et ICa. Ces cases restent des variable et sont modifié dans la fonction suivante
+    modifPlateau2(Pl2p,[ILi,ICo,ICa],[[P|Li],[P|Co],[P|Ca]],RPl2).
 
 
 
 %la fonction suivante va modifier le plateau1 avec la pièce sur la case et va récupérer les cases liés au coup (ligne,colonne,carré) (valeurs et indices)
 % 1er paramètre : plateau ,
-% 2ieme : coup,(pour la première case mettre 1 et pas 0)
+% 2ieme : coup,(pour la première case mettre 0
 % 3ieme : identifie la case sur le plateau (appelé avec C lors du premier appel)
 % 4ieme : permet de savoir où on est sur le plateau dans la fonction (appelé avec 1 lors du premier appel)
-% 5ieme = cases qui peuvent bloquer (ligne , colonne, carré) ,
-% 6ieme = plateau résultat
-% 7ieme = plateau2
-% 8ieme = plateau2 avec comme seul modification un -1 sur la case joué (il reste d'autres modifs à faire après la fonction (diminuer la valeur des auters cases liés (ligne,colonne,carré)))
-% 9ieme = indices des cases du 5ieme paramètres
+% 5ieme : valeurs des cases qui peuvent bloquer en ligne 
+% 6ieme : valeurs des cases qui peuvent bloquer en colonne 
+% 7ieme : valeurs des cases qui peuvent bloquer en carré 
+% 8ieme = plateau résultat
+% 9ieme = plateau2
+% 10ieme = plateau2 avec comme seul modification un -1 sur la case joué (il reste d'autres modifs à faire après la fonction (diminuer la valeur des auters cases liés (ligne,colonne,carré)))
+% 11ieme : indice des cases qui peuvent bloquer en ligne + valeur de la piece
+% 12ieme : indice des cases qui peuvent bloquer en colonne + valeur de la piece
+% 13ieme : indice des cases qui peuvent bloquer en carré + valeur de la piece
 
 %cas de la denière case plateau
-helpJouerCoup([],[_,_],_,17,[],[],[],[],[]).
+%helpJouerCoup([],[_,_],_,17,[],[],[],[],[]).
+helpJouerCoup([],[_,_],_,16,[],[],[],[],[],[],[],[],[]).
 %jouerCoup([],[_,P],_,17,_,[],PiecesDispo,RPiecesDispo,Pl2,RPl2,I)=-
     %not(bloquerR(Li,P)),
     %not(bloquerR(Co,P)),
@@ -158,45 +164,69 @@ helpJouerCoup([],[_,_],_,17,[],[],[],[],[]).
     %modifPlateau2(PL2,I,RPl2).
 
 %cas où on est sur la case pointé par le coup
-helpJouerCoup([0|TPl1],[C,P],0,CPlateau,X,[P|TRPl1],[_|TPl2],[-1|TRPl2],I):-
+helpJouerCoup([0|TPl1],[C,P],0,CPlateau,Li,Co,Ca,[P|TPl1],[_|TPl2],[-1|TPl2],ILi,ICo,ICa):-
     CPlateau2 is CPlateau +1,
-    helpJouerCoup(TPl1,[C,P],-1,CPlateau2,X,TRPl1,TPl2,TRPl2,I).
+    helpJouerCoup(TPl1,[C,P],-1,CPlateau2,Li,Co,Ca,TPl1,TPl2,TPl2,ILi,ICo,ICa).
 
-%lignes
-helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,[[HPl1|TLi],Co,Ca],[HPl1|TRPl1],Pl2,RPl2,[[HIl1|TILi],ICo,ICa]):-
+%ligne
+helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,[HPl1|TLi],Co,Ca,[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],[CPlateau|TILi],ICo,ICa):-
     Q1 is div(CPlateau,4),
     Q2 is div(C,4),
     Q1 == Q2,
-    Compt2 is Compt -1,
-    CPlateau2 is CPlateau + 1 ,
-    HIl1 is CPlateau -1, % indice de la case
-    helpJouerCoup(TPl1,[C,P],Compt2,CPlateau2,[TLi,Co,Ca],TRPl1,Pl2,RPl2,[TILi,ICo,ICa]).
+    %Compt2 is Compt -1,
+    %CPlateau2 is CPlateau + 1 ,
+    %helpJouerCoup(TPl1,[C,P],Compt2,CPlateau2,TLi,Co,Ca,TRPl1,TPl2,TRPl2,TILi,ICo,ICa).
+    %il faut vérifier si la case n'est pas dans le carré aussi
+    estDansCarre([HPl1|TPl1],[C,P],Compt,CPlateau,TLi,Co,Ca,[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],TILi,ICo,ICa).
 
-%colonnes
-helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,[Li,[HPl1|TCo],Ca],[HPl1|TRPl1],Pl2,RPl2,[ILi,[HICo|TICo],ICa]):-
+%colonne
+helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,Li,[HPl1|TCo],Ca,[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],ILi,[CPlateau|TICo],ICa):-
     R1 is mod(CPlateau,4),
     R2 is mod(C,4),
     R1 == R2,
-    Compt2 is Compt -1,
-    CPlateau2 is CPlateau +1,
-    HICo is CPlateau -1,
-    helpJouerCoup(TPl1,[C,P],Compt2,CPlateau2,[Li,TCo,Ca],TRPl1,Pl2,RPl2,[ILi,TICo,ICa]).
+    %Compt2 is Compt -1,
+    %CPlateau2 is CPlateau +1,
+    %helpJouerCoup(TPl1,[C,P],Compt2,CPlateau2,Li,TCo,Ca,TRPl1,TPl2,TRPl2,ILi,TICo,ICa).
+    estDansCarre([HPl1|TPl1],[C,P],Compt,CPlateau,Li,TCo,Ca,[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],ILi,TICo,ICa).
+
 
 % carré cas en haut à gauche
-helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,[Li,Co,[HPl1|TCa]],[HPl1|TRPl1],Pl2,RPl2,[ILi,ICo,[HICa|TICa]]):-
-    divmod(CPlateau,4,Q1,R1),
-    divmod(C,4,Q2,R2),
-    Q2 <2,
-    R2 < 2,
-    Q1 < 2,
-    R1 < 2,
-    Compt2 is Compt -1,
-    CPlateau2 is CPlateau + 1,
-    HICa is CPlateau -1,
-    helpJouerCoup(TPl1,[C,P],Compt2,CPlateau2,[Li,Co,TCa],TRPl1,Pl2,RPl2,[ILi,ICo,TICa]).
+helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,Li,Co,[HPl1|TCa],[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],ILi,ICo,[CPlateau|TICa]):-
+    estDansCarre([HPl1|TPl1],[C,P],Compt,CPlateau,Li,Co,[HPl1|TCa],[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],ILi,ICo,[CPlateau|TICa]).
 
 % carré cas en haut à droite
-helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,[Li,Co,[HPl1|TCa]],[HPl1|TRPl1],Pl2,RPl2,[ILi,ICo,[HICa|TICa]]):-
+helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,Li,Co,[HPl1|TCa],[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],ILi,ICo,[CPlateau|TICa]):-
+    estDansCarre([HPl1|TPl1],[C,P],Compt,CPlateau,Li,Co,[HPl1|TCa],[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],ILi,ICo,[CPlateau|TICa]).
+
+% carré cas en bas à gauche
+helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,Li,Co,[HPl1|TCa],[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],ILi,ICo,[CPlateau|TICa]):-
+    estDansCarre([HPl1|TPl1],[C,P],Compt,CPlateau,Li,Co,[HPl1|TCa],[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],ILi,ICo,[CPlateau|TICa]).
+
+% carré cas en bas à droite
+helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,Li,Co,[HPl1|TCa],[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],ILi,ICo,[CPlateau|TICa]):-
+    estDansCarre([HPl1|TPl1],[C,P],Compt,CPlateau,Li,Co,[HPl1|TCa],[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],ILi,ICo,[CPlateau|TICa]).
+
+%autre cas
+helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,Li,Co,TCa,[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],ILi,ICo,TICa):-
+    Compt2 is Compt -1,
+    CPlateau2 is CPlateau + 1,
+    helpJouerCoup(TPl1,[C,P],Compt2,CPlateau2,Li,Co,TCa,TRPl1,TPl2,TRPl2,ILi,ICo,TICa).
+
+% carré cas en haut à gauche
+estDansCarre([HPl1|TPl1],[C,P],Compt,CPlateau,Li,Co,[HPl1|TCa],[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],ILi,ICo,[CPlateau|TICa]):-
+    divmod(CPlateau,4,Q1,R1),
+    divmod(C,4,Q2,R2),
+    Q2 <2,
+    R2 < 2,
+    Q1 < 2,
+    R1 < 2,
+    Compt2 is Compt -1,
+    CPlateau2 is CPlateau + 1,
+    helpJouerCoup(TPl1,[C,P],Compt2,CPlateau2,Li,Co,TCa,TRPl1,TPl2,TRPl2,ILi,ICo,TICa).
+
+
+% carré cas en haut à droite
+estDansCarre([HPl1|TPl1],[C,P],Compt,CPlateau,Li,Co,[HPl1|TCa],[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],ILi,ICo,[CPlateau|TICa]):-
     divmod(CPlateau,4,Q1,R1),
     divmod(C,4,Q2,R2),
     Q2 <2,
@@ -205,11 +235,10 @@ helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,[Li,Co,[HPl1|TCa]],[HPl1|TRPl1],P
     R1 > 1,
     Compt2 is Compt -1,
     CPlateau2 is CPlateau + 1,
-    HICa is CPlateau -1,
-    helpJouerCoup(TPl1,[C,P],Compt2,CPlateau2,[Li,Co,TCa],TRPl1,Pl2,RPl2,[ILi,ICo,TICa]).
+    helpJouerCoup(TPl1,[C,P],Compt2,CPlateau2,Li,Co,TCa,TRPl1,TPl2,TRPl2,ILi,ICo,TICa).
 
 % carré cas en bas à gauche
-helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,[Li,Co,[HPl1|TCa]],[HPl1|TRPl1],Pl2,RPl2,[ILi,ICo,[HICa|TICa]]):-
+estDansCarre([HPl1|TPl1],[C,P],Compt,CPlateau,Li,Co,[HPl1|TCa],[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],ILi,ICo,[CPlateau|TICa]):-
     divmod(CPlateau,4,Q1,R1),
     divmod(C,4,Q2,R2),
     Q2 > 1,
@@ -218,11 +247,12 @@ helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,[Li,Co,[HPl1|TCa]],[HPl1|TRPl1],P
     R1 < 2,
     Compt2 is Compt -1,
     CPlateau2 is CPlateau + 1,
-    HICa is CPlateau -1,
-    helpJouerCoup(TPl1,[C,P],Compt2,CPlateau2,[Li,Co,TCa],TRPl1,Pl2,RPl2,[ILi,ICo,TICa]).
+    helpJouerCoup(TPl1,[C,P],Compt2,CPlateau2,Li,Co,TCa,TRPl1,TPl2,TRPl2,ILi,ICo,TICa).
+
 
 % carré cas en bas à droite
-helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,[Li,Co,[HPl1|TCa]],[HPl1|TRPl1],Pl2,RPl2,[ILi,ICo,[HICa|TICa]]):-
+
+estDansCarre([HPl1|TPl1],[C,P],Compt,CPlateau,Li,Co,[HPl1|TCa],[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],ILi,ICo,[CPlateau|TICa]):-
     divmod(CPlateau,4,Q1,R1),
     divmod(C,4,Q2,R2),
     Q2 > 1,
@@ -231,14 +261,14 @@ helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,[Li,Co,[HPl1|TCa]],[HPl1|TRPl1],P
     R1 > 1,
     Compt2 is Compt -1,
     CPlateau2 is CPlateau + 1,
-    HICa is CPlateau -1,
-    helpJouerCoup(TPl1,[C,P],Compt2,CPlateau2,[Li,Co,TCa],TRPl1,Pl2,RPl2,[ILi,ICo,TICa]).
+    helpJouerCoup(TPl1,[C,P],Compt2,CPlateau2,Li,Co,TCa,TRPl1,TPl2,TRPl2,ILi,ICo,TICa).
 
-%autre cas
-helpJouerCoup([HPl1|TPl1],[C,P],Compt,CPlateau,X1,[HPl1|TRPl1],Pl2,RPl2,X2):-
+% cas où on est pas dans un carré mais il faut rappeler helpJouer pour finir le job (correspond à 75% des cas )
+estDansCarre([HPl1|TPl1],[C,P],Compt,CPlateau,Li,Co,Ca,[HPl1|TRPl1],[HPl2|TPl2],[HPl2|TRPl2],ILi,ICo,ICa):-
     Compt2 is Compt -1,
     CPlateau2 is CPlateau + 1,
-    helpJouerCoup(TPl1,[C,P],Compt2,CPlateau2,X1,TRPl1,Pl2,RPl2,X2).
+    helpJouerCoup(TPl1,[C,P],Compt2,CPlateau2,Li,Co,Ca,TRPl1,TPl2,TRPl2,ILi,ICo,ICa).
+
 
 %le 2ieme argument doit être compris entre 0 et 3 (attention avec 0 pour le pavé (donc faire -1 pui mod 4 our le premier appel))
 modifPiecesDispo([1|T],0,[0|T]).
@@ -251,37 +281,54 @@ modifPiecesDispo([H|[H2|T]],Piece,[H|[H2|TRes]]):-
 
 
 
-modifPlateau2(_,[],_).
-
-modifPlateau2(Pl2,[[IX1,IX2,IX3,IX4]|T],RPl2):-
-    is_set([IX1,IX2,IX3,IX4]), % is_set est vrai si il n'y a pas de doublons
+modifPlateau2(Pl2,[[IX1,IX2,IX3]|T],[[V1,V2,V3,V4]|TV],RPl2):-
+    %is_set([V1,V2,V3,V4]), % is_set est vrai si il n'y a pas de doublons
+    %is_set ne va pas car si il y a un doublon de 0 cela ne veut pas dir qu'il y a un doublon de pièce
+    testPasMemePiece([V1,V2,V3,V4]),
     nth0(IX1,Pl2,X1),
     nth0(IX2,Pl2,X2),
     nth0(IX3,Pl2,X3),
-    nth0(IX4,Pl2,X4),
     RX1 is X1 - 1,
     RX2 is X2 - 1,
     RX3 is X3 - 1,
-    RX4 is X4 - 1,
     nth0(IX1,RPl2,RX1),
     nth0(IX2,RPl2,RX2),
     nth0(IX3,RPl2,RX3),
-    nth0(IX4,RPl2,RX4),
-    modifPlateau2(Pl2,T,RPl2).
+    modifPlateau2(Pl2,T,TV,RPl2).
 
-modifPlateau2(Pl2,[[IX1,IX2,IX3,IX4]|T],RPl2):-
-    not(is_set([IX1,IX2,IX3,IX4])),
+modifPlateau2(Pl2,[[IX1,IX2,IX3]|T],[_|TV],RPl2):-
+    %not(testPasMemePiece([V1,V2,V3,V4])),
+    %pas besoin de l'appel du dessus , si on rentre dans ce code on sait que c'est déja le cas
     nth0(IX1,Pl2,X1),
     nth0(IX2,Pl2,X2),
     nth0(IX3,Pl2,X3),
-    nth0(IX4,Pl2,X4),
-    diffBloquerInutile([X1,X2,X3,X4],[RX1,RX2,RX3,RX4]),
+    diffBloquerInutile([X1,X2,X3],[RX1,RX2,RX3]),
     nth0(IX1,RPl2,RX1),
     nth0(IX2,RPl2,RX2),
     nth0(IX3,RPl2,RX3),
-    nth0(IX4,RPl2,RX4),
-    modifPlateau2(Pl2,T,RPl2).
+    modifPlateau2(Pl2,T,TV,RPl2).
 
+modifPlateau2(_,[],[],_).
+
+testPasMemePiece([]).
+
+testPasMemePiece([0|T]):-
+    testPasMemePiece(T).
+testPasMemePiece([P|T]):-
+    not(member(P,T)),
+    testPasMemePiece(T).
+
+%Pour que modifPLateau2 fonctionne dans jouerCoup , il faut que les cases différentes de celles qu'on soit modifié soit instancié dans RPl2
+copiePlateau2([],_,_,_,_,[]).
+
+copiePlateau2([HPl2|TPl2],Compteur,ILi,ICo,ICa,[HPl2|TRPl2]):-
+    not(member(Compteur,ILi)),
+    not(member(Compteur,ICo)),
+    not(member(Compteur,ICa)),
+    copiePlateau2(TPl2,Compteur,ILi,ICo,ICa,TRPl2).
+
+copiePlateau2([_|TPl2],Compteur,ILi,ICo,ICa,[_|TRPl2]):-
+    copiePlateau2(TPl2,Compteur,ILi,ICo,ICa,TRPl2).
 
 %dans le plateau 2 , une valeur négative signifie que la case est utilisé par une pièce
 % de 1 à 4 cela montre le nombre de coups liés à la case qui mène à la victoir
@@ -410,7 +457,7 @@ tousNegatifs([H|T]):-
 choixCoup(Pl1,Pl2,PiecesDispo,C,P):-
     choixPiecesDispo(PiecesDispo,PiecesChoisi),
     choixCases(Pl2,CasesChoisi),
-    prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PieceChoisi,CasesChoisi,PiecesChoisi,C,P).
+    prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,CasesChoisi,PiecesChoisi,C,P).
 
 %cette priotité est pour simplifier pour la première version de l'ia , en vrai quand il ne reste plus qu'une pièce pour un type , il vaut mieu privilégier la pièce parfois
 prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,_,[HC|_],[HP|_],HC,HP):-
@@ -423,3 +470,5 @@ prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,[HC|TC],[_|TP],C,P):-
 
 prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,[_|TC],[],C,P):-
     prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,TC,PiecesChoisi,C,P).
+
+%jouerCoup([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,1],RPL1,[1,1,1,1,1,1,1,1],RPD,[4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],RPL2).
