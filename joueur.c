@@ -35,6 +35,8 @@ int main (int argc, char ** argv)
     int port2 = port+1;
     struct sockaddr_in addClient;
     coupIA coupAdvIA;
+    char buffer[1024];
+    memset(buffer, '\0', sizeof(buffer));
     
     int socketConx = socketServeur(port2);
     if (socketConx < 0) {
@@ -165,8 +167,29 @@ int main (int argc, char ** argv)
 
         while(cont)
         {
-
             //to do : Réception du coup crée par l'IA
+
+
+            // Réception d'un faux coup depuis le Java
+            int k = 0;
+            while(k<20) {
+                err = recv(socketIA, &buffer[k], 1, 0);
+                if (err <= 0) {
+                    perror("(Erreur dans la reception coup");
+                    shutdown(socketIA, SHUT_RDWR);
+                    close(socketIA);
+                    return -1;
+                            }
+                k++;
+                    }
+
+            int *myints = (int*) buffer;
+            /*printf("Reçu depuis IA, bloque : %d \n", ntohl(myints[0]));
+            printf("Reçu depuis IA, pion : %d \n", ntohl(myints[1]));
+            printf("Reçu depuis IA, ligne : %d \n", ntohl(myints[2]));
+            printf("Reçu depuis IA, colonne : %d \n", ntohl(myints[3]));
+            printf("Reçu depuis IA, typeCoup : %d \n", ntohl(myints[4]));*/
+
             
             cont = false;
             TCoupReq coup = randomCoup(plateau,pieces,COUP,0,couleur);

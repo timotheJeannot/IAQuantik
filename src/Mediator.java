@@ -55,6 +55,7 @@ public class Mediator {
                 System.out.println("Début première partie");
                 do {
                     //to do : Calcul du prochain coup + envoi du coup au joueur
+                    dsm.envoiCoup();
                     typeCoup = dsm.lireCoup();
                     //to do : Envoi du coup à l'AIEngine
                 }while(typeCoup == TypeCoup.CONT);
@@ -65,6 +66,7 @@ public class Mediator {
                     typeCoup = dsm.lireCoup();
                     //to do : Envoi du coup à l'AIEngine + calcul du prochain coup
                     //to do : Envoi du coup au joueur
+                    dsm.envoiCoup();
                 }while(typeCoup == TypeCoup.CONT);
 
             }
@@ -79,12 +81,14 @@ public class Mediator {
                     typeCoup = dsm.lireCoup();
                     //to do : Envoi du coup à l'AIEngine + calcul du prochain coup
                     //to do : Envoi du coup au joueur
+                    dsm.envoiCoup();
                 }while(typeCoup == TypeCoup.CONT);
 
                 //2ème partie
                 System.out.println("Début deuxième partie");
                 do {
                     //to do : Calcul du prochain coup + envoi du coup au joueur
+                    dsm.envoiCoup();
                     typeCoup = dsm.lireCoup();
                     //to do : Envoi du coup à l'AIEngine
                 }while(typeCoup == TypeCoup.CONT);
