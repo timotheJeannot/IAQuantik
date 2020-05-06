@@ -452,23 +452,88 @@ tousNegatifs([H|T]):-
     H<0,
     tousNegatifs(T).
 
-% construction du coup
-
-choixCoup(Pl1,Pl2,PiecesDispo,C,P):-
+% construction du coup avec récupération des plateau après le coup construit
+choixCoupEtJoue(Pl1,Pl2,PiecesDispo,C,P,RPl1,RPl2):-
     choixPiecesDispo(PiecesDispo,PiecesChoisi),
     choixCases(Pl2,CasesChoisi),
-    prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,CasesChoisi,PiecesChoisi,C,P).
+    prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,CasesChoisi,PiecesChoisi,C,P,RPl1,RPl2).
 
 %cette priotité est pour simplifier pour la première version de l'ia , en vrai quand il ne reste plus qu'une pièce pour un type , il vaut mieu privilégier la pièce parfois
-prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,_,[HC|_],[HP|_],HC,HP):-
-    jouerCoup(Pl1,[HC,HP],_,PiecesDispo,_,Pl2,_). % on vérifier qu'on peut jouer le coup
+prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,_,[HC|_],[HP|_],HC,HP,RPl1,RPl2):-
+    jouerCoup(Pl1,[HC,HP],RPl1,PiecesDispo,_,Pl2,RPl2). % on joue le coup
 
-prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,[HC|TC],[_|TP],C,P):-
+prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,[HC|TC],[_|TP],C,P,RPl1,RPl2):-
     %not(jouerCoup(Pl1,[HC,HP],_,PiecesDispo,_,Pl2,_)),
     % pas besoin de l'appel à jouer au dessus , car on sait que on ne peut pas jouer l'appel a été fait au dessus
-    prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,[HC|TC],TP,C,P).
+    prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,[HC|TC],TP,C,P,RPl1,RPl2).
 
-prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,[_|TC],[],C,P):-
-    prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,TC,PiecesChoisi,C,P).
+prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,[_|TC],[],C,P,RPl1,RPl2):-
+    prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,TC,PiecesChoisi,C,P,RPl1,RPl2).
+
+
+
+%parcour en profondeur avec heuristique pour une partie gagné
+%Premier vaut 1 quand on joue en premier durant la partie et 0 sinon
+%du coup Compteur est appelé avec la valeur de Premier au premier appel
+chercheGagne([HPl1|TPl1],[HPl1|TPl1],[HPD|TPD],[HPD|TPD],[HPDA|TPDA],[HPDA|TPDA],[HPl2|TPl2],[HPl2|TPl2],Compt,Premier):-
+    Test is Compt mod 2,
+    Test == Premier, % on regarde si c'est un tour où on est en train de jouer
+    gagne(HPl1).
+
+chercheGagne([HPl1|TPl1],[HPl1|TPl1],[HPD|TPD],[HPD|TPD],[HPDA|TPDA],[HPDA|TPDA],[HPl2|TPl2],[HPl2|TPl2],Compt,Premier):-
+    Test is Compt mod 2,
+    Test == Premier, % on regarde si c'est un tour où on est en train de jouer
+    % on regarde si l'adversaire est bloquer
+    % je pense que c'est peut être trop gourmand. Si c'est bien le cas voir entre enlver cette état final ou trouver un meilleur algo pour savoir si le plateau est bloquant pour les pièces restantes.
+    casesVides(HPl1,CasesVides),
+    bloquerAll(HPl1,CasesVides,HPDA,CasesVides).
+
+%chercheGagne([HPl1|TPl1],Res1,[HPD|TPD],Res2,X,Res3,[HPl2|TPl2],Res4,Compt,Premier):-
+
+
+
+
+
+
+
+casesVides(Pl1,[C|T]):-
+    nth0(C,Pl1,0),!, 
+    select(0, Pl1,1, RPl1),!,
+    casesVides(RPl1,T).
+    
+
+casesVides(_,[]).
+
+%regarde si le plateau rend les pièces dispo bloqués.
+bloquerAll(_,[],[],_).
+
+bloquerAll(Pl1,[C|T],[HPD|TPD],CasesVides):-
+    not(jouerCoup(Pl1,[C,HPD],_,[HPD|TPD],_,_,_)),
+    bloquerAll(Pl1,T,[HPD|TPD],CasesVides).
+
+bloquerAll(Pl1,[],[_|TPD],CasesVides):-
+    bloquerAll(Pl1,CasesVides,TPD,CasesVides).
+
+
+
 
 %jouerCoup([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,1],RPL1,[1,1,1,1,1,1,1,1],RPD,[4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],RPL2).
+
+% en fait il aurait été peut être plus simple de faire jouerCoup avecles fonctions qui suit et de récupérer ensuite avec nth
+% donnes les indices des cases de la ligne 
+indicesCasesLigne(I,Li):-
+    Q is div(I,4),
+    L1 is Q*4,
+    L2 is Q*4 +1,
+    L3 is Q*4 +2,
+    L4 is Q*4 +3,
+    Li=[L1,L2,L3,L4].
+
+indicesCasesColonne(I,Co):-
+    R is I mod 4,
+    C1 is R*4,
+    C2 is R*4 +1,
+    C3 is R*4 +2,
+    C4 is R*4 +3,
+    Co=[C1,C2,C3,C4].
+
