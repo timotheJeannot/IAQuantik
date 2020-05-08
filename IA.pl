@@ -126,14 +126,37 @@ bloquerR(X,8):-
 % 6ieme = plateau2
 % 7ieme = plateau2 après le coup
 jouerCoup(Pl1,[C,P],RPl1,PiecesDispo,RPiecesDispo,Pl2,RPl2):-
-    helpJouerCoup(Pl1,[C,P],C,0,Li,Co,Ca,RPl1,Pl2,Pl2p,ILi,ICo,ICa),
+    nospyall,notrace,nodebug,
+    %write(" debug0 "),
+    helpJouerCoup(Pl1,[C,P],C,0,Li,Co,Ca,RPl1,Pl2,Pl2p,ILi,ICo,ICa),!,
+    %write("Pl1 = "),write(Pl1),writef("\n"),
+    %write("C ="),write(C),writef("\n"),
+    %write("P = "),write(P),writef("\n"),
+    %write("Li = "),write(Li),write(" ILi = "),write(ILi),writef("\n"),
+    %write("Co = "),write(Co),write(" ICo = "),write(ICo),writef("\n"),
+    %write("Ca = "),write(Ca),write(" ICa = "),write(ICa),writef("\n"),
+    %write("RPl1 = "),write(RPl1),writef("\n"),
+    %write("Pieces Dispo = "),write(PiecesDispo),writef("\n"),
+    
     not(bloquerR(Li,P)),
     not(bloquerR(Co,P)),
     not(bloquerR(Ca,P)),
     X is mod(P-1,4),
     modifPiecesDispo(PiecesDispo,X,RPiecesDispo),
-    copiePlateau2(Pl2p,0,ILi,ICo,ICa,RPl2), % copie de Pl2p dans RPl2 sauf pour les cases désignés par ILi,ICo et ICa. Ces cases restent des variable et sont modifié dans la fonction suivante
-    modifPlateau2(Pl2p,[ILi,ICo,ICa],[[P|Li],[P|Co],[P|Ca]],RPl2).
+    %write("Retour des spièces dispo"),write(RPiecesDispo),writef("\n"),
+    %spy(copiePlateau2),
+    %write(" debug1 "),
+    %copiePlateau2(Pl2p,0,ILi,ICo,ICa,RPl2), % copie de Pl2p dans RPl2 sauf pour les cases désignés par ILi,ICo et ICa. Ces cases restent des variable et sont modifié dans la fonction suivante
+    %modifPlateau2(Pl2p,[ILi,ICo,ICa],[[P|Li],[P|Co],[P|Ca]],RPl2).
+    %les 2 fonctions du dessus ne modifait pas le plateau tel qu'il continue à représenter ce que je voulais, elles ne servent plus à rien.
+    %spy(newModifPlateau2),
+    newModifPlateau2(Pl2p,RPl1,ILi,Pl2p2),
+    newModifPlateau2(Pl2p2,RPl1,ICo,Pl2p3),
+    newModifPlateau2(Pl2p3,RPl1,ICa,RPl2).
+    %write("Pl2 = "),write(Pl2),writef("\n"),
+    %write("RPl2 = "),write(RPl2),writef("\n")
+
+
 
 
 
@@ -155,13 +178,7 @@ jouerCoup(Pl1,[C,P],RPl1,PiecesDispo,RPiecesDispo,Pl2,RPl2):-
 %cas de la denière case plateau
 %helpJouerCoup([],[_,_],_,17,[],[],[],[],[]).
 helpJouerCoup([],[_,_],_,16,[],[],[],[],[],[],[],[],[]).
-%jouerCoup([],[_,P],_,17,_,[],PiecesDispo,RPiecesDispo,Pl2,RPl2,I)=-
-    %not(bloquerR(Li,P)),
-    %not(bloquerR(Co,P)),
-    %not(bloquerR(Ca,P)),
-    %X is mod(P-1,4),
-    %modifPiecesDispo(PiecesDispo,X,RPiecesDispo),
-    %modifPlateau2(PL2,I,RPl2).
+
 
 %cas où on est sur la case pointé par le coup
 helpJouerCoup([0|TPl1],[C,P],0,CPlateau,Li,Co,Ca,[P|TPl1],[_|TPl2],[-1|TPl2],ILi,ICo,ICa):-
@@ -325,10 +342,12 @@ copiePlateau2([HPl2|TPl2],Compteur,ILi,ICo,ICa,[HPl2|TRPl2]):-
     not(member(Compteur,ILi)),
     not(member(Compteur,ICo)),
     not(member(Compteur,ICa)),
-    copiePlateau2(TPl2,Compteur,ILi,ICo,ICa,TRPl2).
+    Compteur2 is Compteur + 1,
+    copiePlateau2(TPl2,Compteur2,ILi,ICo,ICa,TRPl2).
 
 copiePlateau2([_|TPl2],Compteur,ILi,ICo,ICa,[_|TRPl2]):-
-    copiePlateau2(TPl2,Compteur,ILi,ICo,ICa,TRPl2).
+    Compteur2 is Compteur + 1,
+    copiePlateau2(TPl2,Compteur2,ILi,ICo,ICa,TRPl2).
 
 %dans le plateau 2 , une valeur négative signifie que la case est utilisé par une pièce
 % de 1 à 4 cela montre le nombre de coups liés à la case qui mène à la victoir
@@ -357,33 +376,38 @@ diffBloquerInutile([_|T],[RH|RT]):-
 
 %on choisi en priorité une piéce qui est encore en double (choixPieceDispo1), et si il n'y plus de piéces en double on choisit n'importe laquelle (choixPieceDispo2)
 %la liste des piéces (deuxième paramètre) est trié du plus prioritaire au moin prioritaire
-choixPiecesDispo([0,0,0,0,0,0,0,0],[]).
+choixPiecesDispo([0,0,0,0,0,0,0,0],[],_).
 
-choixPiecesDispo(PiecesDispo,[H|TPiecesChoisi]):-
-    choixPieceDispo1(PiecesDispo,0,H,RPD),
-    choixPiecesDispo(RPD,TPiecesChoisi).
+choixPiecesDispo(PiecesDispo,[H|TPiecesChoisi],Noir):-
+    choixPieceDispo1(PiecesDispo,0,H,RPD,Noir),
+    choixPiecesDispo(RPD,TPiecesChoisi,Noir).
 
-choixPiecesDispo(PiecesDispo,[H|TPiecesChoisi]):-
-    choixPieceDispo2(PiecesDispo,0,H,RPD),
-    choixPiecesDispo(RPD,TPiecesChoisi).
+choixPiecesDispo(PiecesDispo,[H|TPiecesChoisi],Noir):-
+    choixPieceDispo2(PiecesDispo,0,H,RPD,Noir),
+    choixPiecesDispo(RPD,TPiecesChoisi,Noir).
 
 %le premier paramètre est le tableau des pièces disponibles
 %lors du premier appel à cette fonction , le deuxiéme paramètre vaut 0
-% le troisième est la piecé retourné (0 pour le pavé)
+% le troisième est la piecé retourné (1 pour le pavé blanc et 5 pour le pavé noir)
 %le quatrième est les piecès dispo avec la piéce choisit qui devient indisponible
-choixPieceDispo1([1|[1|T]],Compt,Compt,[0|[1|T]]).
+% le dernier paramètre indique la couleur , 1 pour noir et 0 pour blanc
+choixPieceDispo1([1|[1|T]],Compt,Piece,[0|[1|T]],Noir):-
+    Piece is 1+Compt + Noir * 4.
+    
 
-choixPieceDispo1([P1|[P2|T]],Compt,Piece,[P1|[P2|TR]]):-
+choixPieceDispo1([P1|[P2|T]],Compt,Piece,[P1|[P2|TR]],Noir):-
     Compt2 is Compt +1 ,
-    choixPieceDispo1(T,Compt2,Piece,TR).
+    choixPieceDispo1(T,Compt2,Piece,TR,Noir).
 
 %on part du principe que on modifie les pièces seuelement avec la fonction modifPiecesDispo fait précédemment.
 %cela implique que si un type de pièce n'est pas en double , alors le tableau des pièces disponible représente ca avec un 0 puis un 1. (on suppose donc que l'inverse n'est pas possible)
-choixPieceDispo2([0|[1|T]],Compt,Compt,[0|[0|T]]).
+choixPieceDispo2([0|[1|T]],Compt,Piece,[0|[0|T]],Noir):-
+    Piece is 1+Compt + Noir * 4.
+    
 
-choixPieceDispo2([0|[0|T]],Compt,Piece,[0|[0|TR]]):-
+choixPieceDispo2([0|[0|T]],Compt,Piece,[0|[0|TR]],Noir):-
     Compt2 is Compt +1 ,
-    choixPieceDispo2(T,Compt2,Piece,TR).
+    choixPieceDispo2(T,Compt2,Piece,TR,Noir).
 
 %pour la case 
 
@@ -417,13 +441,14 @@ choixCases4([HPl2|TPl2],Compt,Case,[HPl2|TRPl2]):-
     choixCases4(TPl2,Compt2,Case,TRPl2).
 
 %là on risque fortement de perdre mais bon au moin on perd en jouant (si on choisit pas une case c'est loose aussi)
-choixCase5([2|TPl2],Compt,Compt,[-1|TPl2]).
+choixCases5([2|TPl2],Compt,Compt,[-1|TPl2]).
 
 choixCases5([HPl2|TPl2],Compt,Case,[HPl2|TRPl2]):-
     Compt2 is Compt +1,
     choixCases5(TPl2,Compt2,Case,TRPl2).
 
 choixCases(Pl2,[]):-
+    %nospyall,nodebug,notrace,
     tousNegatifs(Pl2).
 
 choixCases(Pl2,[H|CasesChoisi]):-
@@ -453,47 +478,71 @@ tousNegatifs([H|T]):-
     tousNegatifs(T).
 
 % construction du coup avec récupération des plateau après le coup construit
-choixCoupEtJoue(Pl1,Pl2,PiecesDispo,C,P,RPl1,RPl2):-
-    choixPiecesDispo(PiecesDispo,PiecesChoisi),
+choixCoupEtJoue(Pl1,Pl2,PiecesDispo,C,P,RPl1,RPl2,RPD,Noir):-
+    choixPiecesDispo(PiecesDispo,PiecesChoisi,Noir),
+    %spy(choixCases),
     choixCases(Pl2,CasesChoisi),
-    prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,CasesChoisi,PiecesChoisi,C,P,RPl1,RPl2).
+    %write("aie"),
+    %spy(prioriteCasesSurPieces),
+    prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,CasesChoisi,PiecesChoisi,C,P,RPl1,RPl2,RPD).
 
 %cette priotité est pour simplifier pour la première version de l'ia , en vrai quand il ne reste plus qu'une pièce pour un type , il vaut mieu privilégier la pièce parfois
-prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,_,[HC|_],[HP|_],HC,HP,RPl1,RPl2):-
-    jouerCoup(Pl1,[HC,HP],RPl1,PiecesDispo,_,Pl2,RPl2). % on joue le coup
+prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,_,[HC|_],[HP|_],HC,HP,RPl1,RPl2,RPD):-
+    jouerCoup(Pl1,[HC,HP],RPl1,PiecesDispo,RPD,Pl2,RPl2). % on joue le coup si on peut
 
-prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,[HC|TC],[_|TP],C,P,RPl1,RPl2):-
+prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,[HC|TC],[_|TP],C,P,RPl1,RPl2,RPD):-
     %not(jouerCoup(Pl1,[HC,HP],_,PiecesDispo,_,Pl2,_)),
     % pas besoin de l'appel à jouer au dessus , car on sait que on ne peut pas jouer l'appel a été fait au dessus
-    prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,[HC|TC],TP,C,P,RPl1,RPl2).
+    prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,[HC|TC],TP,C,P,RPl1,RPl2,RPD).
 
-prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,[_|TC],[],C,P,RPl1,RPl2):-
-    prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,TC,PiecesChoisi,C,P,RPl1,RPl2).
+prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,[_|TC],[],C,P,RPl1,RPl2,RPD):-
+    prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,TC,PiecesChoisi,C,P,RPl1,RPl2,RPD).
 
 
 
 %parcour en profondeur avec heuristique pour une partie gagné
-%Premier vaut 1 quand on joue en premier durant la partie et 0 sinon
-%du coup Compteur est appelé avec la valeur de Premier au premier appel
-chercheGagne([HPl1|TPl1],[HPl1|TPl1],[HPD|TPD],[HPD|TPD],[HPDA|TPDA],[HPDA|TPDA],[HPl2|TPl2],[HPl2|TPl2],Compt,Premier):-
+%avant dernier paramètre , compteur , pour savoir si c'est notre tour (utiliser 0 au premier appel)
+%dernier paramètre : la couleur , 0 pour blanc et 1 pour noir
+chercheGagne(Coups,Coups,CoupsA,CoupsA,[HPl1|TPl1],[HPl1|TPl1],X1,X1,X2,X2,X3,X3,Compt,_):-
     Test is Compt mod 2,
-    Test == Premier, % on regarde si c'est un tour où on est en train de jouer
+    Test == 1, % on regarde si c'est le tour de l'adversaire (et que la configuration est gagnante sans qu'il est joué)
     gagne(HPl1).
 
-chercheGagne([HPl1|TPl1],[HPl1|TPl1],[HPD|TPD],[HPD|TPD],[HPDA|TPDA],[HPDA|TPDA],[HPl2|TPl2],[HPl2|TPl2],Compt,Premier):-
+chercheGagne(Coups,Coups,CoupsA,CoupsA,[HPl1|TPl1],[HPl1|TPl1],[HPD|TPD],[HPD|TPD],[HPDA|TPDA],[HPDA|TPDA],[HPl2|TPl2],[HPl2|TPl2],Compt,_):-
     Test is Compt mod 2,
-    Test == Premier, % on regarde si c'est un tour où on est en train de jouer
+    Test == 1, % on regarde si c'est le tour de l'adbersaire (et que la configuration est gagnante sans qu'il est joué)
     % on regarde si l'adversaire est bloquer
     % je pense que c'est peut être trop gourmand. Si c'est bien le cas voir entre enlver cette état final ou trouver un meilleur algo pour savoir si le plateau est bloquant pour les pièces restantes.
     casesVides(HPl1,CasesVides),
     bloquerAll(HPl1,CasesVides,HPDA,CasesVides).
 
-%chercheGagne([HPl1|TPl1],Res1,[HPD|TPD],Res2,X,Res3,[HPl2|TPl2],Res4,Compt,Premier):-
+chercheGagne([[C,P]|TC],Res1,X1,Res2,[HPl1|TPl1],Res3,[HPD|TPD],Res4,X2,Res5,[HPl2|TPl2],Res6,Compt,Noir):-
+    %nospyall,notrace,nodebug,
+    Test is Compt mod 2,
+    Test == 0,
+    member(1,HPD), % on vérifie qu'il reste une pièce à jouer
+    choixCoupEtJoue(HPl1,HPl2,HPD,C,P,RPl1,RPl2,RPD,Noir),
+    Compt2 is Compt + 1,
+    Noir2 is (Noir + 1) mod 2,
+    chercheGagne([_,[C,P]|TC],Res1,X1,Res2,[RPl1,HPl1|TPl1],Res3,[RPD,HPD|TPD],Res4,X2,Res5,[RPl2,HPl2|TPl2],Res6,Compt2,Noir2).
+
+chercheGagne(X1,Res1,[[CA,PA]|TCA],Res2,[HPl1|TPl1],Res3,X2,Res4,[HPDA|TPDA],Res5,[HPl2|TPl2],Res6,Compt,Noir):-
+    Test is Compt mod 2,
+    Test == 1, % tour adverse
+    member(1,HPDA), % on vérifie qu'il reste une pièce à jouer
+    choixCoupEtJoue(HPl1,HPl2,HPDA,CA,PA,RPl1,RPl2,RPDA,Noir), % bon, on va dire que l'adversaire utilise la même heuristique
+    Compt2 is Compt + 1,
+    Noir2 is (Noir + 1) mod 2,
+    %spy(chercheGagne),
+    chercheGagne(X1,Res1,[_,[CA,PA]|TCA],Res2,[RPl1,HPl1|TPl1],Res3,X2,Res4,[RPDA,HPDA|TPDA],Res5,[RPl2,HPl2|TPl2],Res6,Compt2,Noir2).
+
+chercheGagne(Coups,Coups,CoupsA,CoupsA,[HPl1|TPl1],[HPl1|TPl1],X1,X1,X2,X2,X3,X3,_,_):-
+    nul(HPl1).
 
 
 
 
-
+%chercheGagne(_,_,_,_,_,_,_,_,_,_,_,_,_,_).
 
 
 casesVides(Pl1,[C|T]):-
@@ -508,18 +557,23 @@ casesVides(_,[]).
 bloquerAll(_,[],[],_).
 
 bloquerAll(Pl1,[C|T],[HPD|TPD],CasesVides):-
-    not(jouerCoup(Pl1,[C,HPD],_,[HPD|TPD],_,_,_)),
+    not(verifJouerCoup(Pl1,[C,HPD])),
     bloquerAll(Pl1,T,[HPD|TPD],CasesVides).
 
 bloquerAll(Pl1,[],[_|TPD],CasesVides):-
     bloquerAll(Pl1,CasesVides,TPD,CasesVides).
 
 
+% prédicat jouerCoup avec juste le coup joué sur le plateau1 (utiliser dans bloquerAll)
+verifJouerCoup(Pl1,[C,P]):-
+    helpJouerCoup(Pl1,[C,P],C,0,Li,Co,Ca,_,_,_,_,_,_),
+    not(bloquerR(Li,P)),
+    not(bloquerR(Co,P)),
+    not(bloquerR(Ca,P)).
 
 
-%jouerCoup([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,1],RPL1,[1,1,1,1,1,1,1,1],RPD,[4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],RPL2).
 
-% en fait il aurait été peut être plus simple de faire jouerCoup avecles fonctions qui suit et de récupérer ensuite avec nth
+% en fait il aurait été peut être plus simple de faire jouerCoup avecles fonctions qui suit, 
 % donnes les indices des cases de la ligne 
 indicesCasesLigne(I,Li):-
     Q is div(I,4),
@@ -531,9 +585,196 @@ indicesCasesLigne(I,Li):-
 
 indicesCasesColonne(I,Co):-
     R is I mod 4,
-    C1 is R*4,
-    C2 is R*4 +1,
-    C3 is R*4 +2,
-    C4 is R*4 +3,
+    C1 is R,
+    C2 is R+4,
+    C3 is R+8,
+    C4 is R+12,
     Co=[C1,C2,C3,C4].
 
+% cas du carré en haut à gauche
+indicesCasesCarre(I,Ca):-
+    divmod(I,4,Q1,R1),
+    Q1 < 2,
+    R1 < 2,
+    Ca=[0,1,4,5].
+
+% cas du carré en haut à droite
+indicesCasesCarre(I,Ca):-
+    divmod(I,4,Q1,R1),
+    Q1 < 2,
+    R1 > 1,
+    Ca=[2,3,6,7].
+
+% cas du carré en bas à gauche
+indicesCasesCarre(I,Ca):-
+    divmod(I,4,Q1,R1),
+    Q1 > 1,
+    R1 < 2,
+    Ca=[8,9,12,13].
+
+% cas du carré en bas à droite
+indicesCasesCarre(I,Ca):-
+    divmod(I,4,Q1,R1),
+    Q1 > 1,
+    R1 > 1,
+    Ca=[10,11,14,15].
+
+
+tetraedre([],Res,Res).
+
+tetraedre([H|T],Compt,Res):-
+    H \= 0, %0 est pour la case vide au départ
+    X is H mod 4, % on enlève la couleur
+    X = 0,
+    Compt2 is Compt + 1,
+    tetraedre(T,Compt2,Res).
+
+tetraedre([_|T],Compt,Res):-
+    tetraedre(T,Compt,Res).
+
+pave([],Res,Res).
+
+pave([H|T],Compt,Res):-
+    X is H mod 4, % on enlève la couleur
+    X = 1,
+    Compt2 is Compt + 1,
+    pave(T,Compt2,Res).
+
+pave([_|T],Compt,Res):-
+    pave(T,Compt,Res).
+
+
+
+cylindre([],Res,Res).
+
+cylindre([H|T],Compt,Res):-
+    X is H mod 4, % on enlève la couleur
+    X = 2,
+    Compt2 is Compt + 1,
+    cylindre(T,Compt2,Res).
+
+cylindre([_|T],Compt,Res):-
+    cylindre(T,Compt,Res).
+
+sphere([],Res,Res).
+
+sphere([H|T],Compt,Res):-
+    X is H mod 4, % on enlève la couleur
+    X = 3,
+    Compt2 is Compt + 1,
+    sphere(T,Compt2,Res).
+
+sphere([_|T],Compt,Res):-
+    sphere(T,Compt,Res).
+
+
+% donne une valeur d'une composion de 4 pièces
+valeurCompo(Pieces,Valeur):-
+    tetraedre(Pieces,0,V1),
+    V1 < 2, % on vérifie qu'il n'y est pas 2 tétraèdre
+    %spy(pave),
+    pave(Pieces,0,V2),
+    %nospyall,nodebug,notrace,
+    V2 < 2,
+    cylindre(Pieces,0,V3),
+    V3 < 2,
+    sphere(Pieces,0,V4),
+    V4 < 2,
+    %write("Pieces = "),
+    %write(Pieces),
+    %write(" V2 = "),
+    %write(V2),
+    %writef("\n"),
+    Valeur is 4 - V1 - V2 -V3 - V4.
+
+valeurCompo(_,_,42). %si il y a deux fois la même piece dans une compo (pour indiquer que la valeur de la compo est faible on va mettre 42)
+
+minimumListe([],Res,Res).
+
+minimumListe([H|T],Min,Res):-
+    H < Min,
+    minimumListe(T,H,Res).
+
+minimumListe([_|T],Min,Res):-
+    minimumListe(T,Min,Res).
+
+%la meilleur valeur Compo (le minimum donc) (entre la compo ligne , colonne et carrée)
+meilleurValeurCompo(V1,V2,V3,Res):-
+    minimumListe([V1,V2,V3],V1,Res).
+
+%fonction appellé dans modifPlateau2 qui permet de donner une valeur aux cases voisines de la case ciblé pendant le coup (ligne,colonne,carrée)
+%ici on donne un indice de la case voisine
+%si un 42 apparait cela veut dire que la case est libre mais inutile
+valeurCasePl2(Pl1,I,Res):-
+    indicesCasesLigne(I,[L1,L2,L3,L4]),
+    indicesCasesColonne(I,[Co1,Co2,Co3,Co4]),
+    indicesCasesCarre(I,[Ca1,Ca2,Ca3,Ca4]),
+    %nospyall(),nodebug,notrace,
+    %spy(valeurCompo),
+    nth0(L1,Pl1,VL1),
+    nth0(L2,Pl1,VL2),
+    nth0(L3,Pl1,VL3),
+    nth0(L4,Pl1,VL4),
+    nth0(Co1,Pl1,VCo1),
+    nth0(Co2,Pl1,VCo2),
+    nth0(Co3,Pl1,VCo3),
+    nth0(Co4,Pl1,VCo4),
+    nth0(Ca1,Pl1,VCa1),
+    nth0(Ca2,Pl1,VCa2),
+    nth0(Ca3,Pl1,VCa3),
+    nth0(Ca4,Pl1,VCa4),
+    %write("///////////////////"),writef("\n"),
+    %write([VL1,VL2,VL3,VL4]),write([VCo1,VCo2,VCo3,VCo4]),write([VCa1,VCa2,VCa3,VCa4]),writef("\n"),
+    %write("///////////////////"),writef("\n"),
+    valeurCompo([VL1,VL2,VL3,VL4],VLi),
+    %writef("\n li : "),write(VLi),writef("\n"),
+    valeurCompo([VCo1,VCo2,VCo3,VCo4],VCo),
+    %writef("\n co : "),write(VCo),writef("\n"),
+    valeurCompo([VCa1,VCa2,VCa3,VCa4],VCa),
+    %writef("\n ca : "),write(VCa),writef("\n"),
+    
+    meilleurValeurCompo(VLi,VCo,VCa,Res).
+
+
+%le 2 paramétre représente un des 3 triplets d'indices récupérer dans le prédicat helpJouerCoup (ILi,ICo,ICa)
+newModifPlateau2(Pl2,_,[],Pl2).
+
+newModifPlateau2(Pl2,Pl1,[H|T],Res):-
+    nth0(H,Pl2,Vact),
+    Vact > 0, % si la valeur est négative , cela veut dire que la case est occupé et donc il ne faut pas la changer
+    valeurCasePl2(Pl1,H,Vnew),
+    modifCasePl2(Pl2,0,H,Vnew,RPl2),
+    %writef("\n"),
+    %write(" H = "),
+    %write(H),
+    %write(" RPl2 = "),
+    %write(RPl2),
+    %write(" Vact =  "),
+    %write(Vact),
+    %write(" Vnew = "),
+    %write(Vnew),
+    %writef("\n"),
+    newModifPlateau2(RPl2,Pl1,T,Res).
+    
+newModifPlateau2(Pl2,Pl1,[H|T],Res):-
+    nth0(H,Pl2,Vact),
+    Vact < 0, % je pense qu'il n'y a pas besoin de tester cela et que c'est forcément le cas si on rentre dans ce prédicat mais on va le garder par mesure de sureté
+    newModifPlateau2(Pl2,Pl1,T,Res).
+
+modifCasePl2([_|T],Compt,Compt,Val,[Val|T]).
+
+modifCasePl2([H|T],Compt,Indice,Val,[H|T2]):-
+    Compt2 is Compt + 1,
+    modifCasePl2(T,Compt2,Indice,Val,T2).
+
+
+%jouerCoup([1+0+0*4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1+0+1*4], _6452, [1, 1, 1, 1, 1, 1, 1, 1], _6456, [-1, 3, 3, 3, 3, 3, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4], _6460)
+%[-2, -1, 2, 2, 2, 2, 4, 4, 3, 3, 4, 4, 3, 3, 4, 4]
+
+%jouerCoup([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],[1,5],RPl1,[1, 1, 1, 1, 1, 1, 1, 1],RPD,[-1, 3, 3, 3, 3, 3, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4],RPl2)
+
+%jouerCoup([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,1],RPL1,[1,1,1,1,1,1,1,1],RPD,[4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],RPL2).
+
+%chercheGagne([[C,P]],Res1,[[Ca,Pa]],Res2,[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],Res3,[[1,1,1,1,1,1,1,1]],Res4,[[1,1,1,1,1,1,1,1]],Res5,[[4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4]],Res6,0,0).
+
+%newModifPlateau2([2, -1, 2, 2, 2, 2, 4, 4, -1, 4, 4, 4, 3, 4, 4, 4], [1, 6, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0], [9, 10, 11], _552) 
