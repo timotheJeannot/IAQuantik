@@ -54,7 +54,6 @@ int main (int argc, char ** argv)
     }
 
 
-
     int socket = socketClient(serv,port); 
     if(socket < 0)
     {
@@ -98,6 +97,7 @@ int main (int argc, char ** argv)
         close(socket);
         return -1;
         }
+
 
     /************* Fin initialisation de la communication *****************/
 
@@ -184,15 +184,16 @@ int main (int argc, char ** argv)
                     }
 
             int *myints = (int*) buffer;
-            /*printf("Reçu depuis IA, bloque : %d \n", ntohl(myints[0]));
+            printf("Reçu depuis IA, bloque : %d \n", ntohl(myints[0]));
             printf("Reçu depuis IA, pion : %d \n", ntohl(myints[1]));
             printf("Reçu depuis IA, ligne : %d \n", ntohl(myints[2]));
             printf("Reçu depuis IA, colonne : %d \n", ntohl(myints[3]));
-            printf("Reçu depuis IA, typeCoup : %d \n", ntohl(myints[4]));*/
+            printf("Reçu depuis IA, typeCoup : %d \n", ntohl(myints[4]));
 
             
             cont = false;
-            TCoupReq coup = randomCoup(plateau,pieces,COUP,0,couleur);
+            //TCoupReq coup = randomCoup(plateau,pieces,COUP,0,couleur);
+            TCoupReq coup = buildCoup(ntohl(myints[2]),ntohl(myints[3]), ntohl(myints[1]), COUP,0,couleur);
         
             err = send(socket , &coup,sizeof(TCoupReq),0);
             if (err <= 0) {

@@ -36,7 +36,7 @@ public class DataStreamManager implements Closeable {
         return null;
     }
 
-    public TypeCoup lireCoup() {
+    public Coup lireCoup() {
         try {
 
             int typeCoup = is.readInt();
@@ -50,22 +50,47 @@ public class DataStreamManager implements Closeable {
                 int ligne = is.readInt();
                 int colonne = is.readInt();
 
-               /* System.out.println("Le joueur " + estBloque.name());
+                System.out.println("Le joueur " + estBloque.name());
                 System.out.println("pion = " + Pion.parse(pion).name());
                 System.out.println("couleur = " + Couleur.parse(couleur).name());
                 System.out.println("ligne = " + Ligne.parse(ligne).name());
                 System.out.println("colonne = " + Colonne.parse(colonne).name());
-                System.out.println("typeCoup = " + typeCoup);*/
-
+                System.out.println("typeCoup = " + typeCoup);
+                return new Coup(ligne, colonne, pion);
             }
-            return TypeCoup.parse(typeCoup);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    public void envoiCoup() {
+    public void envoiCoup(Coup c) {
+        int bloqueAlea = Bloque.NONBLOQUE.getValue();
+        int pionAlea = c.pion;
+        int ligneAlea = c.ligne;
+        int colonneAlea = c.colonne;
+        int typeAlea = TypeCoup.CONT.getValue();
+
+        System.out.println("Envoi à joueur pion = " + Pion.parse(pionAlea).name());
+        System.out.println("Envoi à joueur ligne = " + Ligne.parse(ligneAlea).name());
+        System.out.println("Envoi à joueur colonne = " + Colonne.parse(colonneAlea).name());
+
+        try {
+            os.writeInt(bloqueAlea);
+            os.writeInt(pionAlea);
+            os.writeInt(ligneAlea);
+            os.writeInt(colonneAlea);
+            os.writeInt(typeAlea);
+            os.flush();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void envoiCoup2() {
         int bloqueAlea = Bloque.NONBLOQUE.getValue();
         int pionAlea = (int)(Math.random() * 4);
         int ligneAlea = (int)(Math.random() * 4);

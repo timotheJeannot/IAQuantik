@@ -610,6 +610,35 @@ bool gagne (int *plateau)
 /********************* fin partie calcule de la propriété du coup ******************/
 
 
+TCoupReq buildCoup (TLg l, TCol c, int p, TIdReq idRequest, int numPartie, TCoul couleur)
+{
+
+    TPion pion;
+    pion.coulPion = couleur;
+
+    TCase posPion;
+
+ 
+    pion.typePion = p;
+
+    
+    posPion.l = l;
+    posPion.c = c;
+    TCoupReq ret ;
+    ret.idRequest = idRequest;
+    ret.numPartie = numPartie;
+    ret.estBloque = 0;
+    ret.pion = pion;
+    ret.posPion = posPion;
+    ret.propCoup = 0;
+    
+    return ret;
+}
+
+
+
+
+
 TCoupReq randomCoup (int * plateau , bool * pieces ,TIdReq idRequest, int numPartie, TCoul couleur)
 {
  

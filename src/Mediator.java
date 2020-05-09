@@ -3,6 +3,7 @@ import enums.TypeCoup;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class Mediator {
 
@@ -44,8 +45,12 @@ public class Mediator {
             finally { System.exit(-1); }
         }
 
+        ai = new AIEngine();
+
         try {
+            Coup lireCoup;
             couleurJoueur = dsm.lireCouleur();
+            ai.co = couleurJoueur;
             System.out.println("Reçu couleur : "+couleurJoueur.name());
             TypeCoup typeCoup = TypeCoup.CONT;
             if (couleurJoueur.equals(Couleur.BLANC)) {
@@ -54,19 +59,25 @@ public class Mediator {
                 //1ère partie
                 System.out.println("Début première partie");
                 do {
+                    Coup c = ai.coupIA();
                     //to do : Calcul du prochain coup + envoi du coup au joueur
-                    dsm.envoiCoup();
-                    typeCoup = dsm.lireCoup();
+                    dsm.envoiCoup(c);
+                    lireCoup = dsm.lireCoup();
+                    ai.updatePlateau(lireCoup);
+                    typeCoup = TypeCoup.parse(lireCoup.propriete);
                     //to do : Envoi du coup à l'AIEngine
                 }while(typeCoup == TypeCoup.CONT);
 
                 //2ème partie
                 System.out.println("Début deuxième partie");
                 do {
-                    typeCoup = dsm.lireCoup();
+                    lireCoup = dsm.lireCoup();
+                    ai.updatePlateau(lireCoup);
+                    typeCoup = TypeCoup.parse(lireCoup.propriete);
                     //to do : Envoi du coup à l'AIEngine + calcul du prochain coup
                     //to do : Envoi du coup au joueur
-                    dsm.envoiCoup();
+                    Coup c = ai.coupIA();
+                    dsm.envoiCoup(c);
                 }while(typeCoup == TypeCoup.CONT);
 
             }
@@ -78,18 +89,26 @@ public class Mediator {
                 //1ère partie
                 System.out.println("Début première partie");
                 do {
-                    typeCoup = dsm.lireCoup();
+                    lireCoup = dsm.lireCoup();
+                    ai.updatePlateau(lireCoup);
+                    System.out.println("Test 1 Med ");
+                    typeCoup = TypeCoup.parse(lireCoup.propriete);
+                    System.out.println("Test 2 Med ");
                     //to do : Envoi du coup à l'AIEngine + calcul du prochain coup
                     //to do : Envoi du coup au joueur
-                    dsm.envoiCoup();
+                    Coup c = ai.coupIA();
+                    dsm.envoiCoup(c);
                 }while(typeCoup == TypeCoup.CONT);
 
                 //2ème partie
                 System.out.println("Début deuxième partie");
                 do {
                     //to do : Calcul du prochain coup + envoi du coup au joueur
-                    dsm.envoiCoup();
-                    typeCoup = dsm.lireCoup();
+                    Coup c = ai.coupIA();
+                    dsm.envoiCoup(c);
+                    lireCoup = dsm.lireCoup();
+                    ai.updatePlateau(lireCoup);
+                    typeCoup = TypeCoup.parse(lireCoup.propriete);
                     //to do : Envoi du coup à l'AIEngine
                 }while(typeCoup == TypeCoup.CONT);
             }
