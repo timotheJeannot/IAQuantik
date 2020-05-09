@@ -46,7 +46,7 @@ quadrupletGagnant([P1,P2,P3,P4]):-
     P2p is P2 mod 4,
     P3p is P3 mod 4,
     P4p is P4 mod 4,
-    14 == P1p*P1p + P2p*P2p + P3p*P3p + P4p*P4p.
+    14 =:= P1p*P1p + P2p*P2p + P3p*P3p + P4p*P4p.
 
 % on regarde si une ligne est gagnante
 gagne([C1,C2,C3,C4,_,_,_,_,_,_,_,_,_,_,_,_]):-
@@ -530,6 +530,7 @@ chercheGagne(X1,Res1,[[CA,PA]|TCA],Res2,[HPl1|TPl1],Res3,X2,Res4,[HPDA|TPDA],Res
     Test is Compt mod 2,
     Test == 1, % tour adverse
     member(1,HPDA), % on vérifie qu'il reste une pièce à jouer
+    %spy(choixCoupEtJoue),
     choixCoupEtJoue(HPl1,HPl2,HPDA,CA,PA,RPl1,RPl2,RPDA,Noir), % bon, on va dire que l'adversaire utilise la même heuristique
     Compt2 is Compt + 1,
     Noir2 is (Noir + 1) mod 2,
@@ -777,4 +778,11 @@ modifCasePl2([H|T],Compt,Indice,Val,[H|T2]):-
 
 %chercheGagne([[C,P]],Res1,[[Ca,Pa]],Res2,[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],Res3,[[1,1,1,1,1,1,1,1]],Res4,[[1,1,1,1,1,1,1,1]],Res5,[[4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4]],Res6,0,0).
 
-%newModifPlateau2([2, -1, 2, 2, 2, 2, 4, 4, -1, 4, 4, 4, 3, 4, 4, 4], [1, 6, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0], [9, 10, 11], _552) 
+%newModifPlateau2([2, -1, 2, 2, 2, 2, 4, 4, -1, 4, 4, 4, 3, 4, 4, 4], [1, 6, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0], [9, 10, 11], _552)
+
+
+
+%choixCoupEtJoue([1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[-1,3,3,3,3,3,4,4,3,4,4,4,3,4,4,4], [1,1,1,1,1,1,1,1],1,6,F,G,H,1).
+
+
+
