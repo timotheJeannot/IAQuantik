@@ -19,17 +19,13 @@ void viderBuffer()
 int main (int argc, char ** argv)
 {
     /* verification des arguments */
-    if (argc != 3) {
-        printf("usage : %s nom/IPServ port \n", argv[0]);
+    if (argc != 4) {
+        printf("usage : %s nom/IPServ port nomJoueur \n", argv[0]);
         return -1;
     }
 
 
-    time_t t;
-    /* Intializes random number generator */
-    srand((unsigned) time(&t)); // à enlever si on finit par pas utiliser l'alé
-                                // je commence par faire de l'aléa pour finir la partie communication
-                                // de plus l'aléa peut être utilisé si l'ia ne répond pas à temps
+    
 
     /************ Initialisation de la communication **********/
 
@@ -66,7 +62,10 @@ int main (int argc, char ** argv)
     }
     
 
-    TPartieReq req = {PARTIE,"tjeannot",BLANC}; // pour le nom du joueur il faut relire le sujet , il faut faire ça avec le script
+    TPartieReq req;
+    req.idReq = PARTIE;
+    strcpy(req.nomJoueur,argv[3]);
+    req.coulPion = BLANC;
 
     int err = send(socket , &req,sizeof(TPartieReq),0);
     if (err <= 0) {
@@ -108,11 +107,6 @@ int main (int argc, char ** argv)
 
     for(int i = 0 ; i <2 ; i++)
     {
-        int * plateau = iniPlateau();
-
-        bool * pieces = iniPiecesDispo();
-
-        bool * piecesAdv = iniPiecesDispo();
 
         int joueur = 1;
         if((couleur == NOIR && i ==0) || (couleur == BLANC && i==1))
@@ -143,7 +137,6 @@ int main (int argc, char ** argv)
                         return -5;
                     }
 
-                    modifPlateauPieces(&plateau,&piecesAdv,coupAdve);
                     if(coupAdve.propCoup == CONT)
                     {
                         cont = true;
@@ -154,6 +147,8 @@ int main (int argc, char ** argv)
                         coupAdvIA.lignePion = htonl((int)coupAdve.posPion.l);      
                         coupAdvIA.colonnePion = htonl((int)coupAdve.posPion.c);    
                         coupAdvIA.propCoup = htonl((int)coupAdve.propCoup);
+
+                        /************* Envoi à l'ia ******************/
 
                         /*printf("Envoi à l'IA, bloque : %d \n", ((int)coupAdve.estBloque));
                         printf("Envoi à l'IA, pion : %d \n", ((int)coupAdve.pion.typePion));
@@ -171,6 +166,7 @@ int main (int argc, char ** argv)
                             return -1;
                         }
                     }
+                    
                 }
         }
 
@@ -244,7 +240,6 @@ int main (int argc, char ** argv)
 
             if(repCoup.validCoup == VALID && repCoup.propCoup == CONT)
             {
-                modifPlateauPieces(&plateau, &pieces , coup);
                 TCoupRep repCoupAdv;
                 err = recv(socket,&repCoupAdv,sizeof(TCoupRep),0);
                 if (err <= 0) {
@@ -261,10 +256,6 @@ int main (int argc, char ** argv)
                         shutdown(socket, SHUT_RDWR); close(socket);
                         return -5;
                     }
-                    if(repCoupAdv.propCoup != PERDU)
-                    {
-                        modifPlateauPieces(&plateau,&piecesAdv,coupAdv);
-                    }
 
                     if(coupAdv.propCoup == CONT)
                     {
@@ -278,11 +269,11 @@ int main (int argc, char ** argv)
                         coupAdvIA.colonnePion = htonl((int)coupAdv.posPion.c);    
                         coupAdvIA.propCoup = htonl((int)coupAdv.propCoup);
 
-                      /*  printf("Envoi à l'IA, bloque : %d \n", ((int)coupAdv.estBloque));
+                        printf("Envoi à l'IA, bloque : %d \n", ((int)coupAdv.estBloque));
                         printf("Envoi à l'IA, pion : %d \n", ((int)coupAdv.pion.typePion));
                         printf("Envoi à l'IA, ligne : %d \n", ((int)coupAdv.posPion.l));
                         printf("Envoi à l'IA, colonne : %d \n", ((int)coupAdv.posPion.c));
-                        printf("Envoi à l'IA, typeCoup : %d \n", ((int)coupAdv.propCoup));*/
+                        printf("Envoi à l'IA, typeCoup : %d \n", ((int)coupAdv.propCoup));
 
 
 
@@ -296,6 +287,7 @@ int main (int argc, char ** argv)
                     }
                     else {
                         int propCoupAdv = htonl((int)coupAdv.propCoup);
+                        printf("////////////// Envoi à l'IA, typeCoup : %d \n", ((int)coupAdv.propCoup));
                         err = send(socketIA, &propCoupAdv, sizeof(int), 0);
                         if (err != sizeof(coupIA)) {
                             perror("Erreur envoi prop coup adverse");
@@ -330,9 +322,6 @@ int main (int argc, char ** argv)
             }
         }
 
-        free(plateau);
-        free(pieces);
-        free(piecesAdv); // il faudrait aussi free dans les cas d'erreurs car on termine l'éxécution
     }
     /************* Fin des parties ******************/
 

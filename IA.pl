@@ -126,35 +126,16 @@ bloquerR(X,8):-
 % 6ieme = plateau2
 % 7ieme = plateau2 après le coup
 jouerCoup(Pl1,[C,P],RPl1,PiecesDispo,RPiecesDispo,Pl2,RPl2):-
-    nospyall,notrace,nodebug,
-    %write(" debug0 "),
-    helpJouerCoup(Pl1,[C,P],C,0,Li,Co,Ca,RPl1,Pl2,Pl2p,ILi,ICo,ICa),!,
-    %write("Pl1 = "),write(Pl1),writef("\n"),
-    %write("C ="),write(C),writef("\n"),
-    %write("P = "),write(P),writef("\n"),
-    %write("Li = "),write(Li),write(" ILi = "),write(ILi),writef("\n"),
-    %write("Co = "),write(Co),write(" ICo = "),write(ICo),writef("\n"),
-    %write("Ca = "),write(Ca),write(" ICa = "),write(ICa),writef("\n"),
-    %write("RPl1 = "),write(RPl1),writef("\n"),
-    %write("Pieces Dispo = "),write(PiecesDispo),writef("\n"),
-    
+    helpJouerCoup(Pl1,[C,P],C,0,Li,Co,Ca,RPl1,Pl2,Pl2p,ILi,ICo,ICa),!,   
     not(bloquerR(Li,P)),
     not(bloquerR(Co,P)),
     not(bloquerR(Ca,P)),
     X is mod(P-1,4),
     modifPiecesDispo(PiecesDispo,X,RPiecesDispo),
-    %write("Retour des spièces dispo"),write(RPiecesDispo),writef("\n"),
-    %spy(copiePlateau2),
-    %write(" debug1 "),
-    %copiePlateau2(Pl2p,0,ILi,ICo,ICa,RPl2), % copie de Pl2p dans RPl2 sauf pour les cases désignés par ILi,ICo et ICa. Ces cases restent des variable et sont modifié dans la fonction suivante
-    %modifPlateau2(Pl2p,[ILi,ICo,ICa],[[P|Li],[P|Co],[P|Ca]],RPl2).
-    %les 2 fonctions du dessus ne modifait pas le plateau tel qu'il continue à représenter ce que je voulais, elles ne servent plus à rien.
-    %spy(newModifPlateau2),
     newModifPlateau2(Pl2p,RPl1,ILi,Pl2p2),
     newModifPlateau2(Pl2p2,RPl1,ICo,Pl2p3),
     newModifPlateau2(Pl2p3,RPl1,ICa,RPl2).
-    %write("Pl2 = "),write(Pl2),writef("\n"),
-    %write("RPl2 = "),write(RPl2),writef("\n")
+
 
 
 
@@ -298,74 +279,6 @@ modifPiecesDispo([H|[H2|T]],Piece,[H|[H2|TRes]]):-
 
 
 
-modifPlateau2(Pl2,[[IX1,IX2,IX3]|T],[[V1,V2,V3,V4]|TV],RPl2):-
-    %is_set([V1,V2,V3,V4]), % is_set est vrai si il n'y a pas de doublons
-    %is_set ne va pas car si il y a un doublon de 0 cela ne veut pas dir qu'il y a un doublon de pièce
-    testPasMemePiece([V1,V2,V3,V4]),
-    nth0(IX1,Pl2,X1),
-    nth0(IX2,Pl2,X2),
-    nth0(IX3,Pl2,X3),
-    RX1 is X1 - 1,
-    RX2 is X2 - 1,
-    RX3 is X3 - 1,
-    nth0(IX1,RPl2,RX1),
-    nth0(IX2,RPl2,RX2),
-    nth0(IX3,RPl2,RX3),
-    modifPlateau2(Pl2,T,TV,RPl2).
-
-modifPlateau2(Pl2,[[IX1,IX2,IX3]|T],[_|TV],RPl2):-
-    %not(testPasMemePiece([V1,V2,V3,V4])),
-    %pas besoin de l'appel du dessus , si on rentre dans ce code on sait que c'est déja le cas
-    nth0(IX1,Pl2,X1),
-    nth0(IX2,Pl2,X2),
-    nth0(IX3,Pl2,X3),
-    diffBloquerInutile([X1,X2,X3],[RX1,RX2,RX3]),
-    nth0(IX1,RPl2,RX1),
-    nth0(IX2,RPl2,RX2),
-    nth0(IX3,RPl2,RX3),
-    modifPlateau2(Pl2,T,TV,RPl2).
-
-modifPlateau2(_,[],[],_).
-
-testPasMemePiece([]).
-
-testPasMemePiece([0|T]):-
-    testPasMemePiece(T).
-testPasMemePiece([P|T]):-
-    not(member(P,T)),
-    testPasMemePiece(T).
-
-%Pour que modifPLateau2 fonctionne dans jouerCoup , il faut que les cases différentes de celles qu'on soit modifié soit instancié dans RPl2
-copiePlateau2([],_,_,_,_,[]).
-
-copiePlateau2([HPl2|TPl2],Compteur,ILi,ICo,ICa,[HPl2|TRPl2]):-
-    not(member(Compteur,ILi)),
-    not(member(Compteur,ICo)),
-    not(member(Compteur,ICa)),
-    Compteur2 is Compteur + 1,
-    copiePlateau2(TPl2,Compteur2,ILi,ICo,ICa,TRPl2).
-
-copiePlateau2([_|TPl2],Compteur,ILi,ICo,ICa,[_|TRPl2]):-
-    Compteur2 is Compteur + 1,
-    copiePlateau2(TPl2,Compteur2,ILi,ICo,ICa,TRPl2).
-
-%dans le plateau 2 , une valeur négative signifie que la case est utilisé par une pièce
-% de 1 à 4 cela montre le nombre de coups liés à la case qui mène à la victoir
-% supérieur à 10 signifie que la case est libre mais inutile (il y déja 2 pièces du même type sur la même ligne par example)
-%cette fonction est appelé quand on sait que le quadruplet (ligne , colonne ou carré)
-%contient des doublons( et donc 2 fois la même piéce (même couleur et même type))
-%et permet des faires passer à 42 (valeur qui restera au dessus de 10 , même avec les -1 qu'il y a dans modifPlateau2)
-% les cases libres mais inutile et de garder une valeur négative pour les cases occupés par un pion
-diffBloquerInutile([],[]).
-
-diffBloquerInutile([H|T],[H|RT]):-
-    H<0,
-    diffBloquerInutile(T,RT).
-
-diffBloquerInutile([_|T],[RH|RT]):-
-    RH is 42,
-    diffBloquerInutile(T,RT).
-
 
 %/////////////////////////////////// choix du coup /////////////////////////////////
 
@@ -480,13 +393,11 @@ tousNegatifs([H|T]):-
 % construction du coup avec récupération des plateau après le coup construit
 choixCoupEtJoue(Pl1,Pl2,PiecesDispo,C,P,RPl1,RPl2,RPD,Noir):-
     choixPiecesDispo(PiecesDispo,PiecesChoisi,Noir),
-    %spy(choixCases),
     choixCases(Pl2,CasesChoisi),
-    %write("aie"),
-    %spy(prioriteCasesSurPieces),
     prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,PiecesChoisi,CasesChoisi,PiecesChoisi,C,P,RPl1,RPl2,RPD).
 
-%cette priotité est pour simplifier pour la première version de l'ia , en vrai quand il ne reste plus qu'une pièce pour un type , il vaut mieu privilégier la pièce parfois
+%cette priotité est pour simplifier pour la première version de l'ia ,
+% en vrai quand il ne reste plus qu'une pièce pour un type , il vaut mieu privilégier la pièce parfois
 prioriteCasesSurPieces(Pl1,Pl2,PiecesDispo,_,[HC|_],[HP|_],HC,HP,RPl1,RPl2,RPD):-
     jouerCoup(Pl1,[HC,HP],RPl1,PiecesDispo,RPD,Pl2,RPl2). % on joue le coup si on peut
 
@@ -512,7 +423,8 @@ chercheGagne(Coups,Coups,CoupsA,CoupsA,[HPl1|TPl1],[HPl1|TPl1],[HPD|TPD],[HPD|TP
     Test is Compt mod 2,
     Test == 1, % on regarde si c'est le tour de l'adbersaire (et que la configuration est gagnante sans qu'il est joué)
     % on regarde si l'adversaire est bloquer
-    % je pense que c'est peut être trop gourmand. Si c'est bien le cas voir entre enlver cette état final ou trouver un meilleur algo pour savoir si le plateau est bloquant pour les pièces restantes.
+    % je pense que c'est peut être trop gourmand.
+    % Si c'est bien le cas voir entre enlver cette état final ou trouver un meilleur algo pour savoir si le plateau est bloquant pour les pièces restantes.
     casesVides(HPl1,CasesVides),
     bloquerAll(HPl1,CasesVides,HPDA,CasesVides).
 
@@ -537,13 +449,31 @@ chercheGagne(X1,Res1,[[CA,PA]|TCA],Res2,[HPl1|TPl1],Res3,X2,Res4,[HPDA|TPDA],Res
     %spy(chercheGagne),
     chercheGagne(X1,Res1,[_,[CA,PA]|TCA],Res2,[RPl1,HPl1|TPl1],Res3,X2,Res4,[RPDA,HPDA|TPDA],Res5,[RPl2,HPl2|TPl2],Res6,Compt2,Noir2).
 
-chercheGagne(Coups,Coups,CoupsA,CoupsA,[HPl1|TPl1],[HPl1|TPl1],X1,X1,X2,X2,X3,X3,_,_):-
+
+%parcours en profondeur qui cherche la partie nul, à utiliser si on joue en deuxième.
+chercheNul(Coups,Coups,CoupsA,CoupsA,[HPl1|TPl1],[HPl1|TPl1],X1,X1,X2,X2,X3,X3,_,_):-
     nul(HPl1).
 
+chercheNul([[C,P]|TC],Res1,X1,Res2,[HPl1|TPl1],Res3,[HPD|TPD],Res4,X2,Res5,[HPl2|TPl2],Res6,Compt,Noir):-
+    Test is Compt mod 2,
+    Test == 0,
+    member(1,HPD),
+    choixCoupEtJoue(HPl1,HPl2,HPD,C,P,RPl1,RPl2,RPD,Noir),
+    Compt2 is Compt + 1,
+    Noir2 is (Noir + 1) mod 2,
+    chercheNul([_,[C,P]|TC],Res1,X1,Res2,[RPl1,HPl1|TPl1],Res3,[RPD,HPD|TPD],Res4,X2,Res5,[RPl2,HPl2|TPl2],Res6,Compt2,Noir2).
+
+chercheNul(X1,Res1,[[CA,PA]|TCA],Res2,[HPl1|TPl1],Res3,X2,Res4,[HPDA|TPDA],Res5,[HPl2|TPl2],Res6,Compt,Noir):-
+    Test is Compt mod 2,
+    Test == 1, 
+    member(1,HPDA),
+    choixCoupEtJoue(HPl1,HPl2,HPDA,CA,PA,RPl1,RPl2,RPDA,Noir), % bon, on va dire que l'adversaire utilise la même heuristique
+    Compt2 is Compt + 1,
+    Noir2 is (Noir + 1) mod 2,
+    chercheNul(X1,Res1,[_,[CA,PA]|TCA],Res2,[RPl1,HPl1|TPl1],Res3,X2,Res4,[RPDA,HPDA|TPDA],Res5,[RPl2,HPl2|TPl2],Res6,Compt2,Noir2).
 
 
 
-%chercheGagne(_,_,_,_,_,_,_,_,_,_,_,_,_,_).
 
 
 casesVides(Pl1,[C|T]):-
@@ -745,16 +675,6 @@ newModifPlateau2(Pl2,Pl1,[H|T],Res):-
     Vact > 0, % si la valeur est négative , cela veut dire que la case est occupé et donc il ne faut pas la changer
     valeurCasePl2(Pl1,H,Vnew),
     modifCasePl2(Pl2,0,H,Vnew,RPl2),
-    %writef("\n"),
-    %write(" H = "),
-    %write(H),
-    %write(" RPl2 = "),
-    %write(RPl2),
-    %write(" Vact =  "),
-    %write(Vact),
-    %write(" Vnew = "),
-    %write(Vnew),
-    %writef("\n"),
     newModifPlateau2(RPl2,Pl1,T,Res).
     
 newModifPlateau2(Pl2,Pl1,[H|T],Res):-
