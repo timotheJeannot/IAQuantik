@@ -7,7 +7,7 @@ import java.util.Map;
 import static org.jpl7.Util.*;
 
 public class AIEngine {
-    String file = "/home/antoine/Téléchargements/IAQuantik/src/IA.pl";
+    String file = "~/Documents/M1/S2/Projet/IAQuantik/IA.pl";
     Query q1;
     Couleur co;
     int[] tab = new int[16];

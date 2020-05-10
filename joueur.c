@@ -4,6 +4,8 @@
 #include "random.h"
 #include <time.h>
 
+
+
 void viderBuffer()
 {
     int c;
@@ -21,6 +23,7 @@ int main (int argc, char ** argv)
         printf("usage : %s nom/IPServ port \n", argv[0]);
         return -1;
     }
+
 
     time_t t;
     /* Intializes random number generator */
