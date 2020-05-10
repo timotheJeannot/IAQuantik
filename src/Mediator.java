@@ -12,12 +12,10 @@ public class Mediator {
         DataStreamManager dsm = null;
         Socket socket = null;
         Couleur couleurJoueur;
-        Couleur couleurAdversaire;
-        boolean stop = false;
 
         //Checking number of arguments
-        if (args.length != 3) {
-            System.err.println("Usage : 'hôte port ia_prolog'.");
+        if (args.length != 2) {
+            System.err.println("Usage : 'hôte port '.");
             System.exit(-1);
         }
 
@@ -51,24 +49,22 @@ public class Mediator {
             Coup lireCoup;
             couleurJoueur = dsm.lireCouleur();
             ai.co = couleurJoueur;
-            System.out.println("Reçu couleur : "+couleurJoueur.name());
             TypeCoup typeCoup = TypeCoup.CONT;
+
+            // Déroulement joueur blanc
             if (couleurJoueur.equals(Couleur.BLANC)) {
-                couleurAdversaire = Couleur.NOIR;
 
                 //1ère partie
                 System.out.println("Début première partie");
                 do {
                     Coup c = ai.coupIA();
-                    //to do : Calcul du prochain coup + envoi du coup au joueur
                     dsm.envoiCoup(c);
-                    if(c.propriete == 0) {
+                    if(c.propriete == TypeCoup.CONT.getValue()) {
                         lireCoup = dsm.lireCoup();
                         typeCoup = TypeCoup.parse(lireCoup.propriete);
-                        if (typeCoup.getValue() == 0) {
+                        if (typeCoup == TypeCoup.CONT) {
                             ai.updatePlateau(lireCoup);
                         }
-                        //to do : Envoi du coup à l'AIEngine
                     }
                     else {
                         typeCoup = TypeCoup.parse(c.propriete);
@@ -80,36 +76,32 @@ public class Mediator {
                 ai.remiseAZero();
                 do {
                     lireCoup = dsm.lireCoup();
-                    ai.updatePlateau(lireCoup);
-                    System.out.println("Test 1 Med ");
                     typeCoup = TypeCoup.parse(lireCoup.propriete);
-                    System.out.println("Test 2 Med ");
-                    //to do : Envoi du coup à l'AIEngine + calcul du prochain coup
-                    //to do : Envoi du coup au joueur
-                    Coup c = ai.coupIA();
-                    dsm.envoiCoup(c);
-                    typeCoup = TypeCoup.parse(c.propriete);
+                    if (typeCoup == TypeCoup.CONT) {
+                        ai.updatePlateau(lireCoup);
+                        Coup c = ai.coupIA();
+                        dsm.envoiCoup(c);
+                        typeCoup = TypeCoup.parse(c.propriete);
+                    }
                 }while(typeCoup == TypeCoup.CONT);
 
             }
 
 
+            //Déroulement joueur noir
             else {
-                couleurAdversaire = Couleur.BLANC;
 
                 //1ère partie
                 System.out.println("Début première partie");
                 do {
                     lireCoup = dsm.lireCoup();
-                    ai.updatePlateau(lireCoup);
-                    System.out.println("Test 1 Med ");
                     typeCoup = TypeCoup.parse(lireCoup.propriete);
-                    System.out.println("Test 2 Med ");
-                    //to do : Envoi du coup à l'AIEngine + calcul du prochain coup
-                    //to do : Envoi du coup au joueur
-                    Coup c = ai.coupIA();
-                    dsm.envoiCoup(c);
-                    typeCoup = TypeCoup.parse(c.propriete);
+                    if (typeCoup == TypeCoup.CONT) {
+                        ai.updatePlateau(lireCoup);
+                        Coup c = ai.coupIA();
+                        dsm.envoiCoup(c);
+                        typeCoup = TypeCoup.parse(c.propriete);
+                    }
                 }while(typeCoup == TypeCoup.CONT);
 
                 //2ème partie
@@ -117,13 +109,13 @@ public class Mediator {
                 ai.remiseAZero();
                 do {
                     Coup c = ai.coupIA();
-                    //to do : Calcul du prochain coup + envoi du coup au joueur
                     dsm.envoiCoup(c);
-                    if(c.propriete == 0) {
+                    if(c.propriete == TypeCoup.CONT.getValue()) {
                         lireCoup = dsm.lireCoup();
-                        ai.updatePlateau(lireCoup);
                         typeCoup = TypeCoup.parse(lireCoup.propriete);
-                        //to do : Envoi du coup à l'AIEngine
+                        if (typeCoup == TypeCoup.CONT) {
+                            ai.updatePlateau(lireCoup);
+                        }
                     }
                     else {
                         typeCoup = TypeCoup.parse(c.propriete);

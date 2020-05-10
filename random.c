@@ -5,7 +5,7 @@
 // je laisse ça là pour le moment pour faire du random et faire la partie communication
 // on pourra l'utiliser plus tard si l'ia ne renvoie pas un coup en temps voulue
 
-// je fais ça car il me semble plus judicieu de finir la partie communication
+// je fais ça car il me semble plus judicieux de finir la partie communication
 // la partie IA peut toujours être perfectionné et j'ai peur qu'on passe trop 
 // de temps dessus par rapport à la communication
 
@@ -26,6 +26,47 @@
         -...
         - 16 = 2nde tétraèdres noir
 */
+
+
+TCoupReq buildCoup (TLg l, TCol c, int p, int bloque, int propCoup, TIdReq idRequest, int numPartie, TCoul couleur)
+{
+
+    TPion pion;
+    pion.coulPion = couleur;
+
+    TCase posPion;
+
+ 
+    pion.typePion = p;
+
+    
+    posPion.l = l;
+    posPion.c = c;
+    TCoupReq ret ;
+    ret.idRequest = idRequest;
+    ret.numPartie = numPartie;
+    ret.estBloque = bloque;
+    ret.pion = pion;
+    ret.posPion = posPion;
+    ret.propCoup = propCoup;
+    
+    return ret;
+}
+
+coupIA buildCoupIA (int bloque, int p, TLg l, TCol c, int propCoup)
+{
+
+    coupIA coup;
+    coup.propCoup = propCoup;
+    coup.estBloque = bloque;    
+    coup.typePion = p;         
+    coup.lignePion = l;      
+    coup.colonnePion = c;  
+
+    return coup;
+}
+
+
 
 
 void addTab (struct tab * tab, int value)
@@ -608,34 +649,6 @@ bool gagne (int *plateau)
 }
 
 /********************* fin partie calcule de la propriété du coup ******************/
-
-
-TCoupReq buildCoup (TLg l, TCol c, int p, int bloque, int propCoup, TIdReq idRequest, int numPartie, TCoul couleur)
-{
-
-    TPion pion;
-    pion.coulPion = couleur;
-
-    TCase posPion;
-
- 
-    pion.typePion = p;
-
-    
-    posPion.l = l;
-    posPion.c = c;
-    TCoupReq ret ;
-    ret.idRequest = idRequest;
-    ret.numPartie = numPartie;
-    ret.estBloque = bloque;
-    ret.pion = pion;
-    ret.posPion = posPion;
-    ret.propCoup = propCoup;
-    
-    return ret;
-}
-
-
 
 
 

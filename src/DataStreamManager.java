@@ -40,23 +40,15 @@ public class DataStreamManager implements Closeable {
         try {
 
             int typeCoup = is.readInt();
-            System.out.println("typecoup " + typeCoup);
 
             if(TypeCoup.parse(typeCoup).equals(TypeCoup.CONT)) {
 
                 Bloque estBloque = is.readInt() == Bloque.NONBLOQUE.getValue() ?
                         Bloque.NONBLOQUE : Bloque.BLOQUE;
-                int couleur = is.readInt();
                 int pion = is.readInt();
                 int ligne = is.readInt();
                 int colonne = is.readInt();
 
-                System.out.println("Le joueur " + estBloque.name());
-                System.out.println("pion = " + Pion.parse(pion).name());
-                System.out.println("couleur = " + Couleur.parse(couleur).name());
-                System.out.println("ligne = " + Ligne.parse(ligne).name());
-                System.out.println("colonne = " + Colonne.parse(colonne).name());
-                System.out.println("typeCoup = " + typeCoup);
                 return new Coup(ligne, colonne, pion);
             }
 
@@ -72,47 +64,19 @@ public class DataStreamManager implements Closeable {
     }
 
     public void envoiCoup(Coup c) {
-        int bloqueAlea = c.bloque;
-        int pionAlea = c.pion;
-        int ligneAlea = c.ligne;
-        int colonneAlea = c.colonne;
-        int typeAlea = c.propriete;
+        int bloque = c.bloque;
+        int pion = c.pion;
+        int ligne = c.ligne;
+        int colonne = c.colonne;
+        int type = c.propriete;
 
-        System.out.println("Envoi à joueur pion = " + Pion.parse(pionAlea).name());
-        System.out.println("Envoi à joueur ligne = " + Ligne.parse(ligneAlea).name());
-        System.out.println("Envoi à joueur colonne = " + Colonne.parse(colonneAlea).name());
 
         try {
-            os.writeInt(bloqueAlea);
-            os.writeInt(pionAlea);
-            os.writeInt(ligneAlea);
-            os.writeInt(colonneAlea);
-            os.writeInt(typeAlea);
-            os.flush();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    public void envoiCoup2() {
-        int bloqueAlea = Bloque.NONBLOQUE.getValue();
-        int pionAlea = (int)(Math.random() * 4);
-        int ligneAlea = (int)(Math.random() * 4);
-        int colonneAlea = (int)(Math.random() * 4);
-        int typeAlea = TypeCoup.CONT.getValue();
-
-        /*System.out.println("Envoi à joueur pion = " + Pion.parse(pionAlea).name());
-        System.out.println("Envoi à joueur ligne = " + Ligne.parse(ligneAlea).name());
-        System.out.println("Envoi à joueur colonne = " + Colonne.parse(colonneAlea).name());*/
-
-        try {
-            os.writeInt(bloqueAlea);
-            os.writeInt(pionAlea);
-            os.writeInt(ligneAlea);
-            os.writeInt(colonneAlea);
-            os.writeInt(typeAlea);
+            os.writeInt(bloque);
+            os.writeInt(pion);
+            os.writeInt(ligne);
+            os.writeInt(colonne);
+            os.writeInt(type);
             os.flush();
 
         } catch (IOException e) {

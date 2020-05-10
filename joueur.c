@@ -141,21 +141,10 @@ int main (int argc, char ** argv)
                     {
                         cont = true;
 
-                        coupAdvIA.estBloque = htonl((int)coupAdve.estBloque);
-                        coupAdvIA.typePion = htonl((int)coupAdve.pion.typePion);       
-                        coupAdvIA.couleur = htonl((int)coupAdve.pion.coulPion);   
-                        coupAdvIA.lignePion = htonl((int)coupAdve.posPion.l);      
-                        coupAdvIA.colonnePion = htonl((int)coupAdve.posPion.c);    
-                        coupAdvIA.propCoup = htonl((int)coupAdve.propCoup);
+                        coupAdvIA = buildCoupIA(htonl((int)coupAdve.estBloque), htonl((int)coupAdve.pion.typePion), htonl((int)coupAdve.posPion.l), 
+                            htonl((int)coupAdve.posPion.c),htonl((int)coupAdve.propCoup));
 
                         /************* Envoi à l'ia ******************/
-
-                        /*printf("Envoi à l'IA, bloque : %d \n", ((int)coupAdve.estBloque));
-                        printf("Envoi à l'IA, pion : %d \n", ((int)coupAdve.pion.typePion));
-                        printf("Envoi à l'IA, ligne : %d \n", ((int)coupAdve.posPion.l));
-                        printf("Envoi à l'IA, colonne : %d \n", ((int)coupAdve.posPion.c));
-                        printf("Envoi à l'IA, typeCoup : %d \n", ((int)coupAdve.propCoup));*/
-
                     
 
                         err = send(socketIA, (const void *) &coupAdvIA, sizeof(coupIA), 0);
@@ -172,10 +161,9 @@ int main (int argc, char ** argv)
 
         while(cont)
         {
-            //to do : Réception du coup crée par l'IA
 
 
-            // Réception d'un faux coup depuis le Java
+             /************* Réception du coup envoyé par l'IA ******************/
             int k = 0;
             while(k<20) {
                 err = recv(socketIA, &buffer[k], 1, 0);
@@ -189,15 +177,12 @@ int main (int argc, char ** argv)
                     }
 
             int *myints = (int*) buffer;
-           /* printf("Reçu depuis IA, bloque : %d \n", ntohl(myints[0]));
-            printf("Reçu depuis IA, pion : %d \n", ntohl(myints[1]));
-            printf("Reçu depuis IA, ligne : %d \n", ntohl(myints[2]));
-            printf("Reçu depuis IA, colonne : %d \n", ntohl(myints[3]));
-            printf("Reçu depuis IA, typeCoup : %d \n", ntohl(myints[4]));*/
 
             
             cont = false;
-            //TCoupReq coup = randomCoup(plateau,pieces,COUP,0,couleur);
+
+             /************* Construction de la requête de coup puis envoi au serveur ******************/
+
             TCoupReq coup = buildCoup(ntohl(myints[2]),ntohl(myints[3]), ntohl(myints[1]),ntohl(myints[0]),ntohl(myints[4]),COUP,0,couleur);
         
             err = send(socket , &coup,sizeof(TCoupReq),0);
@@ -261,21 +246,10 @@ int main (int argc, char ** argv)
                     {
                         cont = true;
 
+                        coupAdvIA = buildCoupIA(htonl((int)coupAdv.estBloque), htonl((int)coupAdv.pion.typePion), htonl((int)coupAdv.posPion.l), 
+                            htonl((int)coupAdv.posPion.c),htonl((int)coupAdv.propCoup));
 
-                        coupAdvIA.estBloque = htonl((int)coupAdv.estBloque);
-                        coupAdvIA.typePion = htonl((int)coupAdv.pion.typePion);       
-                        coupAdvIA.couleur = htonl((int)coupAdv.pion.coulPion);   
-                        coupAdvIA.lignePion = htonl((int)coupAdv.posPion.l);      
-                        coupAdvIA.colonnePion = htonl((int)coupAdv.posPion.c);    
-                        coupAdvIA.propCoup = htonl((int)coupAdv.propCoup);
-
-                        printf("Envoi à l'IA, bloque : %d \n", ((int)coupAdv.estBloque));
-                        printf("Envoi à l'IA, pion : %d \n", ((int)coupAdv.pion.typePion));
-                        printf("Envoi à l'IA, ligne : %d \n", ((int)coupAdv.posPion.l));
-                        printf("Envoi à l'IA, colonne : %d \n", ((int)coupAdv.posPion.c));
-                        printf("Envoi à l'IA, typeCoup : %d \n", ((int)coupAdv.propCoup));
-
-
+                         /************* Envoi à l'IA du coup adverse ******************/
 
                         err = send(socketIA, (const void *) &coupAdvIA, sizeof(coupIA), 0);
                         if (err != sizeof(coupIA)) {
@@ -287,7 +261,6 @@ int main (int argc, char ** argv)
                     }
                     else {
                         int propCoupAdv = htonl((int)coupAdv.propCoup);
-                        printf("////////////// Envoi à l'IA, typeCoup : %d \n", ((int)coupAdv.propCoup));
                         err = send(socketIA, &propCoupAdv, sizeof(int), 0);
                         if (err != sizeof(coupIA)) {
                             perror("Erreur envoi prop coup adverse");

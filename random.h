@@ -12,11 +12,14 @@ struct tab{
 typedef struct {
   int propCoup; 
   int estBloque;     
-  int couleur;
   int typePion;         
   int lignePion;       
   int colonnePion;        
 } coupIA;
+
+TCoupReq buildCoup (TLg l, TCol c, int p, int bloque, int propCoup, TIdReq idRequest, int numPartie, TCoul couleur);
+
+coupIA buildCoupIA (int bloque, int p, TLg l, TCol c, int propCoup);
 
 void addTab (struct tab * tab, int value);
 
@@ -53,8 +56,6 @@ bool gagneCarree (int * plateau);
 bool gagne (int *plateau);
 
 TCoupReq randomCoup (int * plateau , bool * pieces ,TIdReq idRequest, int numPartie, TCoul couleur);
-
-TCoupReq buildCoup (TLg l, TCol c, int p, int bloque, int propCoup, TIdReq idRequest, int numPartie, TCoul couleur);
 
 int TCaseToInt(TCase Case);
 
