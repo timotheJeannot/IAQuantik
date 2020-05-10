@@ -40,6 +40,7 @@ public class DataStreamManager implements Closeable {
         try {
 
             int typeCoup = is.readInt();
+            System.out.println("typecoup " + typeCoup);
 
             if(TypeCoup.parse(typeCoup).equals(TypeCoup.CONT)) {
 
@@ -59,6 +60,11 @@ public class DataStreamManager implements Closeable {
                 return new Coup(ligne, colonne, pion);
             }
 
+            else {
+                return new Coup(0,0,0,0,typeCoup);
+
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -66,11 +72,11 @@ public class DataStreamManager implements Closeable {
     }
 
     public void envoiCoup(Coup c) {
-        int bloqueAlea = Bloque.NONBLOQUE.getValue();
+        int bloqueAlea = c.bloque;
         int pionAlea = c.pion;
         int ligneAlea = c.ligne;
         int colonneAlea = c.colonne;
-        int typeAlea = TypeCoup.CONT.getValue();
+        int typeAlea = c.propriete;
 
         System.out.println("Envoi à joueur pion = " + Pion.parse(pionAlea).name());
         System.out.println("Envoi à joueur ligne = " + Ligne.parse(ligneAlea).name());

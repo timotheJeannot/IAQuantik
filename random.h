@@ -54,7 +54,7 @@ bool gagne (int *plateau);
 
 TCoupReq randomCoup (int * plateau , bool * pieces ,TIdReq idRequest, int numPartie, TCoul couleur);
 
-TCoupReq buildCoup (TLg l, TCol c, int pion, TIdReq idRequest, int numPartie, TCoul couleur);
+TCoupReq buildCoup (TLg l, TCol c, int p, int bloque, int propCoup, TIdReq idRequest, int numPartie, TCoul couleur);
 
 int TCaseToInt(TCase Case);
 
