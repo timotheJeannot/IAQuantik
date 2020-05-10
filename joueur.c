@@ -155,6 +155,12 @@ int main (int argc, char ** argv)
                         coupAdvIA.colonnePion = htonl((int)coupAdve.posPion.c);    
                         coupAdvIA.propCoup = htonl((int)coupAdve.propCoup);
 
+                        /*printf("Envoi à l'IA, bloque : %d \n", ((int)coupAdve.estBloque));
+                        printf("Envoi à l'IA, pion : %d \n", ((int)coupAdve.pion.typePion));
+                        printf("Envoi à l'IA, ligne : %d \n", ((int)coupAdve.posPion.l));
+                        printf("Envoi à l'IA, colonne : %d \n", ((int)coupAdve.posPion.c));
+                        printf("Envoi à l'IA, typeCoup : %d \n", ((int)coupAdve.propCoup));*/
+
                     
 
                         err = send(socketIA, (const void *) &coupAdvIA, sizeof(coupIA), 0);
@@ -187,16 +193,16 @@ int main (int argc, char ** argv)
                     }
 
             int *myints = (int*) buffer;
-            printf("Reçu depuis IA, bloque : %d \n", ntohl(myints[0]));
+           /* printf("Reçu depuis IA, bloque : %d \n", ntohl(myints[0]));
             printf("Reçu depuis IA, pion : %d \n", ntohl(myints[1]));
             printf("Reçu depuis IA, ligne : %d \n", ntohl(myints[2]));
             printf("Reçu depuis IA, colonne : %d \n", ntohl(myints[3]));
-            printf("Reçu depuis IA, typeCoup : %d \n", ntohl(myints[4]));
+            printf("Reçu depuis IA, typeCoup : %d \n", ntohl(myints[4]));*/
 
             
             cont = false;
             //TCoupReq coup = randomCoup(plateau,pieces,COUP,0,couleur);
-            TCoupReq coup = buildCoup(ntohl(myints[2]),ntohl(myints[3]), ntohl(myints[1]), COUP,0,couleur);
+            TCoupReq coup = buildCoup(ntohl(myints[2]),ntohl(myints[3]), ntohl(myints[1]),ntohl(myints[0]),ntohl(myints[4]),COUP,0,couleur);
         
             err = send(socket , &coup,sizeof(TCoupReq),0);
             if (err <= 0) {
@@ -212,7 +218,7 @@ int main (int argc, char ** argv)
                 return -5;
             }
 
-            if(repCoup.propCoup != CONT) {
+             if(repCoup.propCoup != CONT && repCoup.propCoup != GAGNE) { 
                  int propCoupG = htonl(repCoup.propCoup);
                         err = send(socketIA, &propCoupG, sizeof(int), 0);
                         if (err != sizeof(int)) {
@@ -272,7 +278,13 @@ int main (int argc, char ** argv)
                         coupAdvIA.colonnePion = htonl((int)coupAdv.posPion.c);    
                         coupAdvIA.propCoup = htonl((int)coupAdv.propCoup);
 
-                    
+                      /*  printf("Envoi à l'IA, bloque : %d \n", ((int)coupAdv.estBloque));
+                        printf("Envoi à l'IA, pion : %d \n", ((int)coupAdv.pion.typePion));
+                        printf("Envoi à l'IA, ligne : %d \n", ((int)coupAdv.posPion.l));
+                        printf("Envoi à l'IA, colonne : %d \n", ((int)coupAdv.posPion.c));
+                        printf("Envoi à l'IA, typeCoup : %d \n", ((int)coupAdv.propCoup));*/
+
+
 
                         err = send(socketIA, (const void *) &coupAdvIA, sizeof(coupIA), 0);
                         if (err != sizeof(coupIA)) {

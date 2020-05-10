@@ -610,7 +610,7 @@ bool gagne (int *plateau)
 /********************* fin partie calcule de la propriété du coup ******************/
 
 
-TCoupReq buildCoup (TLg l, TCol c, int p, TIdReq idRequest, int numPartie, TCoul couleur)
+TCoupReq buildCoup (TLg l, TCol c, int p, int bloque, int propCoup, TIdReq idRequest, int numPartie, TCoul couleur)
 {
 
     TPion pion;
@@ -627,10 +627,10 @@ TCoupReq buildCoup (TLg l, TCol c, int p, TIdReq idRequest, int numPartie, TCoul
     TCoupReq ret ;
     ret.idRequest = idRequest;
     ret.numPartie = numPartie;
-    ret.estBloque = 0;
+    ret.estBloque = bloque;
     ret.pion = pion;
     ret.posPion = posPion;
-    ret.propCoup = 0;
+    ret.propCoup = propCoup;
     
     return ret;
 }
